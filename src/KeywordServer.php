@@ -201,7 +201,7 @@ class KeywordServer implements KeywordClientInter
         return $this->generateSocketByIndex($index);
     }
 
-    public function append($keyword, $otherInfo=[], float $timeout = 1.0)
+    public function append($keyword, array $otherInfo=[], float $timeout = 1.0)
     {
         if ($this->processNum <= 0) {
             return false;
