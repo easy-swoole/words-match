@@ -48,6 +48,9 @@ class KeywordProcess extends AbstractUnixProcess
     private function generateTree($file)
     {
         $file = fopen($file, 'ab+');
+        if ($file === false) {
+            return false;
+        }
         while (!feof($file)) {
             $line = trim(fgets($file));
             if (empty($line)) {
@@ -107,9 +110,7 @@ class KeywordProcess extends AbstractUnixProcess
                     }
                     break;
                 default:
-                    {
-                        throw new RuntimeError('Invalid instructions:'.$fromPackage->getCommand());
-                    }
+
             }
         }
         return $replayData;
