@@ -3,23 +3,25 @@
  * @CreateTime:   2019/10/21 下午10:29
  * @Author:       huizhang  <tuzisir@163.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
- * @Description:  关键词服务基础类
+ * @Description:  关键词服务端
  */
 namespace EasySwoole\Keyword;
 
-use EasySwoole\Component\Singleton;
-use EasySwoole\Keyword\Exception\RuntimeError;
 use swoole_server;
-class Keyword
+use EasySwoole\Component\Singleton;
+use EasySwoole\Keyword\Base\Protocol;
+use EasySwoole\Keyword\Base\UnixClient;
+use EasySwoole\Keyword\Base\KeywordProcess;
+use EasySwoole\Keyword\Base\KeywordClientInter;
+use EasySwoole\Keyword\Base\KeywordProcessConfig;
+use EasySwoole\Keyword\Exception\RuntimeError;
+
+class KeywordServer implements KeywordClientInter
 {
     use Singleton;
 
     private $tempDir;
-    private $serverName = 'EasySwoole Keyword';
-    private $onTick;
-    private $tickInterval = 5 * 1000;
-    private $onStart;
-    private $onShutdown;
+    private $serverName = 'EasySwoole';
     private $processNum = 3;
     private $run = false;
     private $backlog = 256;
@@ -34,11 +36,11 @@ class Keyword
      * 设置临时目录
      *
      * @param string $tempDir
-     * @return Keyword
+     * @return KeywordServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午10:35
      */
-    public function setTempDir(string $tempDir): Keyword
+    public function setTempDir(string $tempDir): KeywordServer
     {
         $this->modifyCheck();
         $this->tempDir = $tempDir;
@@ -49,11 +51,11 @@ class Keyword
      * 设置处理进程数量
      *
      * @param int $num
-     * @return Keyword
+     * @return KeywordServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午10:36
      */
-    public function setProcessNum(int $num): Keyword
+    public function setProcessNum(int $num): KeywordServer
     {
         $this->modifyCheck();
         $this->processNum = $num;
@@ -81,11 +83,11 @@ class Keyword
      * 设置服务名称
      *
      * @param string $serverName
-     * @return Keyword
+     * @return KeywordServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午10:36
      */
-    public function setServerName(string $serverName): Keyword
+    public function setServerName(string $serverName): KeywordServer
     {
         $this->modifyCheck();
         $this->serverName = $serverName;
@@ -96,11 +98,11 @@ class Keyword
      * 设置内部定时器的回调方法(用于数据落地)
      *
      * @param $onTick
-     * @return Keyword
+     * @return KeywordServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午10:36
      */
-    public function setOnTick($onTick): Keyword
+    public function setOnTick($onTick): KeywordServer
     {
         $this->modifyCheck();
         $this->onTick = $onTick;
@@ -108,59 +110,14 @@ class Keyword
     }
 
     /**
-     * 设置内部定时器的间隔时间(用于数据落地)
-     *
-     * @param $tickInterval
-     * @return Keyword
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午10:37
-     */
-    public function setTickInterval($tickInterval): Keyword
-    {
-        $this->modifyCheck();
-        $this->tickInterval = $tickInterval;
-        return $this;
-    }
-
-    /**
-     * 设置进程启动时的回调(落地数据恢复)
-     *
-     * @param $onStart
-     * @return Keyword
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午10:37
-     */
-    public function setOnStart($onStart): Keyword
-    {
-        $this->modifyCheck();
-        $this->onStart = $onStart;
-        return $this;
-    }
-
-    /**
-     * 设置推出前回调(退出时可落地)
-     *
-     * @param callable $onShutdown
-     * @return Keyword
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午10:37
-     */
-    public function setOnShutdown(callable $onShutdown): Keyword
-    {
-        $this->modifyCheck();
-        $this->onShutdown = $onShutdown;
-        return $this;
-    }
-
-    /**
      * 设置关键词文件路径
      *
      * @param string $keywordPath
-     * @return Keyword
+     * @return KeywordServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午11:30
      */
-    public function setKeywordPath(string $keywordPath): Keyword
+    public function setKeywordPath(string $keywordPath): KeywordServer
     {
         $this->modifyCheck();
         $this->keywordPath = $keywordPath;
@@ -199,22 +156,19 @@ class Keyword
      * @return array
      * @throws \Exception
      */
-    public function initProcess(): array
+    private function initProcess(): array
     {
         $this->run = true;
         $array = [];
         for ($i = 1; $i <= $this->processNum; $i++) {
             $config = new KeywordProcessConfig();
-            $config->setProcessName("{$this->serverName}.FastCacheProcess.{$i}");
+            $config->setProcessName("{$this->serverName}.Process.{$i}");
             $config->setSocketFile($this->generateSocketByIndex($i));
-            $config->setOnStart($this->onStart);
-            $config->setOnShutdown($this->onShutdown);
-            $config->setOnTick($this->onTick);
-            $config->setTickInterval($this->tickInterval);
             $config->setTempDir($this->tempDir);
             $config->setBacklog($this->backlog);
             $config->setAsyncCallback(false);
             $config->setWorkerIndex($i);
+            $config->setKeywordPath($this->keywordPath);
             $array[$i] = new KeywordProcess($config);
         }
         return $array;
@@ -223,17 +177,6 @@ class Keyword
     private function generateSocketByIndex($index)
     {
         return $this->tempDir . "/{$this->serverName}.KeywordProcess.{$index}.sock";
-    }
-
-    function append($keyword, float $timeout = 1.0)
-    {
-        if ($this->processNum <= 0) {
-            return false;
-        }
-        $pack = new Package();
-        $pack->setCommand($pack::ACTION_APPEND);
-        $pack->setKeyword($keyword);
-        return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
     }
 
     private function sendAndRecv($socketFile, Package $package, $timeout)
@@ -256,6 +199,46 @@ class Keyword
     {
         $index = rand(1, $this->processNum);
         return $this->generateSocketByIndex($index);
+    }
+
+    public function append($keyword, $otherInfo=[], float $timeout = 1.0)
+    {
+        if ($this->processNum <= 0) {
+            return false;
+        }
+        $pack = new Package();
+        $pack->setCommand($pack::ACTION_APPEND);
+        $pack->setKeyword($keyword);
+        $pack->setOtherInfo($otherInfo);
+        for ($i=1;$i<=$this->processNum;$i++){
+            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
+        }
+        return true;
+    }
+
+    public function remove($keyword, float $timeout = 1.0)
+    {
+        if ($this->processNum <= 0) {
+            return false;
+        }
+        $pack = new Package();
+        $pack->setCommand($pack::ACTION_REMOVE);
+        $pack->setKeyword($keyword);
+        for ($i=1;$i<=$this->processNum;$i++){
+            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
+        }
+        return true;
+    }
+
+    public function search($keyword, float $timeout = 1.0)
+    {
+        if ($this->processNum <= 0) {
+            return false;
+        }
+        $pack = new Package();
+        $pack->setCommand($pack::ACTION_SEARCH);
+        $pack->setKeyword($keyword);
+        return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
     }
 
 }

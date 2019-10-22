@@ -5,21 +5,15 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词进程配置
  */
-namespace EasySwoole\Keyword;
+namespace EasySwoole\Keyword\Base;
 use EasySwoole\Component\Process\Socket\UnixProcessConfig;
 
 class KeywordProcessConfig extends UnixProcessConfig
 {
     protected $tempDir;
-    protected $onTick;
-    protected $tickInterval = 5 * 1000;
-    protected $onStart;
-    protected $onShutdown;
     protected $backlog;
     protected $workerIndex;
     protected $maxMem = '512M';
-    protected $queueReserveTime = 60;
-    protected $queueMaxReleaseTimes = 10;
     protected $keywordPath='';
 
     public function getTempDir()
@@ -42,19 +36,9 @@ class KeywordProcessConfig extends UnixProcessConfig
         $this->processName = $processName;
     }
 
-    public function getOnTick()
-    {
-        return $this->onTick;
-    }
-
     public function setOnTick($onTick): void
     {
         $this->onTick = $onTick;
-    }
-
-    public function getTickInterval()
-    {
-        return $this->tickInterval;
     }
 
     public function setTickInterval($tickInterval): void
@@ -62,19 +46,9 @@ class KeywordProcessConfig extends UnixProcessConfig
         $this->tickInterval = $tickInterval;
     }
 
-    public function getOnStart()
-    {
-        return $this->onStart;
-    }
-
     public function setOnStart($onStart): void
     {
         $this->onStart = $onStart;
-    }
-
-    public function getOnShutdown()
-    {
-        return $this->onShutdown;
     }
 
     public function setOnShutdown($onShutdown): void
@@ -110,26 +84,6 @@ class KeywordProcessConfig extends UnixProcessConfig
     public function setMaxMem(string $maxMem): void
     {
         $this->maxMem = $maxMem;
-    }
-
-    public function getQueueReserveTime(): int
-    {
-        return $this->queueReserveTime;
-    }
-
-    public function setQueueReserveTime(int $queueReserveTime): void
-    {
-        $this->queueReserveTime = $queueReserveTime;
-    }
-
-    public function getQueueMaxReleaseTimes(): int
-    {
-        return $this->queueMaxReleaseTimes;
-    }
-
-    public function setQueueMaxReleaseTimes(int $queueMaxReleaseTimes): void
-    {
-        $this->queueMaxReleaseTimes = $queueMaxReleaseTimes;
     }
 
     public function getKeywordPath(): string

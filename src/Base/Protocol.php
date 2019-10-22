@@ -3,10 +3,10 @@
  * @CreateTime:   2019/10/21 下午10:59
  * @Author:       huizhang  <tuzisir@163.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
- * @Description:
+ * @Description:  解压包头
  */
 
-namespace EasySwoole\Keyword;
+namespace EasySwoole\Keyword\Base;
 
 class Protocol
 {

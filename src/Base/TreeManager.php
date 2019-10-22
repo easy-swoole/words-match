@@ -3,10 +3,10 @@
  * @CreateTime:   2019-10-14 22:43
  * @Author:       huizhang AbelZhou<tuzisir@163.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
- * @Description:  关键词tree管理
+ * @Description:  关键词字典树
  */
 
-namespace EasySwoole\Keyword;
+namespace EasySwoole\Keyword\Base;
 
 class TreeManager
 {
