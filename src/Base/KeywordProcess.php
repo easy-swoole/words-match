@@ -5,11 +5,13 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词进程
  */
-namespace EasySwoole\Keyword;
+namespace EasySwoole\Keyword\Base;
 use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
-use EasySwoole\Keyword\TreeManager;
+use EasySwoole\Keyword\Exception\RuntimeError;
+use EasySwoole\Keyword\Base\TreeManager;
 use Swoole\Coroutine\Socket;
-use EasySwoole\Keyword\Protocol;
+use EasySwoole\Keyword\Base\Protocol;
+use EasySwoole\Keyword\Package;
 
 class KeywordProcess extends AbstractUnixProcess
 {
@@ -38,7 +40,7 @@ class KeywordProcess extends AbstractUnixProcess
     }
 
     /**
-     *
+     * 生成字典树
      *
      * @param $file
      * CreateTime: 2019/10/21 下午11:33
@@ -46,8 +48,14 @@ class KeywordProcess extends AbstractUnixProcess
     private function generateTree($file)
     {
         $file = fopen($file, 'ab+');
+        if ($file === false) {
+            return false;
+        }
         while (!feof($file)) {
             $line = trim(fgets($file));
+            if (empty($line)) {
+                continue;
+            }
             $lineArr = explode("\t", $line);
             $keyword = array_shift($lineArr);
             $this->tree->append($keyword, $lineArr);
@@ -83,14 +91,26 @@ class KeywordProcess extends AbstractUnixProcess
         $replayData = null;
         $fromPackage = unserialize($commandPayload);
         if ($fromPackage instanceof Package) {
+            $keyword = $fromPackage->getKeyword();
             switch ($fromPackage->getCommand()) {
                 case $fromPackage::ACTION_APPEND:
                     {
-                        $replayData = true;
-                        $this->tree->append($fromPackage->getKeyword(), []);
+                        $otherInfo = $fromPackage->getOtherInfo();
+                        $this->tree->append($keyword, $otherInfo);
+                    }
+                    break;
+                case $fromPackage::ACTION_SEARCH:
+                    {
+                        $replayData = $this->tree->search($keyword);
+                    }
+                    break;
+                case $fromPackage::ACTION_REMOVE:
+                    {
+                        $replayData = $this->tree->remove($keyword);
                     }
                     break;
                 default:
+
             }
         }
         return $replayData;

@@ -6,7 +6,7 @@
  * Time: 16:07
  */
 
-namespace EasySwoole\Keyword;
+namespace EasySwoole\Keyword\Base;
 
 use Swoole\Coroutine\Client;
 
