@@ -25,11 +25,25 @@ class KeywordServer implements KeywordClientInter
     private $processNum = 3;
     private $run = false;
     private $backlog = 256;
-    private $keywordPath='';
+    private $keywordPath = '';
+    private $maxMem = '512M';
 
     function __construct()
     {
         $this->tempDir = getcwd();
+    }
+
+    /**
+     * 设置每个进程所占内存大小
+     *
+     * @param string $maxMem
+     * CreateTime: 2019/10/24 上午1:10
+     * @return KeywordServer
+     */
+    public function setMaxMem(string $maxMem='512M'): KeywordServer
+    {
+        $this->maxMem = $maxMem;
+        return $this;
     }
 
     /**
@@ -169,6 +183,7 @@ class KeywordServer implements KeywordClientInter
             $config->setAsyncCallback(false);
             $config->setWorkerIndex($i);
             $config->setKeywordPath($this->keywordPath);
+            $config->setMaxMem($this->maxMem);
             $array[$i] = new KeywordProcess($config);
         }
         return $array;
