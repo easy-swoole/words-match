@@ -9,6 +9,7 @@ namespace EasySwoole\Keyword;
 
 use swoole_server;
 use EasySwoole\Component\Singleton;
+use EasySwoole\Keyword\Base\Package;
 use EasySwoole\Keyword\Base\Protocol;
 use EasySwoole\Keyword\Base\UnixClient;
 use EasySwoole\Keyword\Base\KeywordProcess;
@@ -25,8 +26,11 @@ class KeywordServer implements KeywordClientInter
     private $processNum = 3;
     private $run = false;
     private $backlog = 256;
-    private $keywordPath = '';
+    private $defaultWordBank = '';
     private $maxMem = '512M';
+    private $exportPath = '';
+    private $defaultPath = '';
+    private $separator='@es@';
 
     function __construct()
     {
@@ -34,14 +38,61 @@ class KeywordServer implements KeywordClientInter
     }
 
     /**
+     * 设置分隔符
+     *
+     * @param string $separator
+     * @return KeywordServer
+     * @throws RuntimeError
+     * CreateTime: 2019/10/30 上午12:25
+     */
+    public function setSeparator(string $separator): KeywordServer
+    {
+        $this->modifyCheck();
+        $this->separator = $separator;
+        return $this;
+    }
+
+    /**
+     * 设置关键词默认路径
+     *
+     * @param string $path
+     * @return KeywordServer
+     * @throws RuntimeError
+     * CreateTime: 2019/10/30 上午12:25
+     */
+    public function setDefaultPath(string $path): KeywordServer
+    {
+        $this->modifyCheck();
+        $this->defaultPath = $path;
+        return $this;
+    }
+
+    /**
+     * 设置导出路径
+     *
+     * @param string $exportPath
+     * @return KeywordServer
+     * @throws RuntimeError
+     * CreateTime: 2019/10/30 上午12:25
+     */
+    public function setExportPath(string $exportPath): KeywordServer
+    {
+        $this->modifyCheck();
+        $this->exportPath = $exportPath;
+        return $this;
+    }
+
+    /**
      * 设置每个进程所占内存大小
      *
      * @param string $maxMem
      * CreateTime: 2019/10/24 上午1:10
+     * @throws RuntimeError
      * @return KeywordServer
      */
     public function setMaxMem(string $maxMem='512M'): KeywordServer
     {
+        $this->modifyCheck();
         $this->maxMem = $maxMem;
         return $this;
     }
@@ -124,17 +175,17 @@ class KeywordServer implements KeywordClientInter
     }
 
     /**
-     * 设置关键词文件路径
+     * 设置默认词库
      *
-     * @param string $keywordPath
+     * @param string $defaultWordBank
      * @return KeywordServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午11:30
      */
-    public function setKeywordPath(string $keywordPath): KeywordServer
+    public function setDefaultWordBank(string $defaultWordBank): KeywordServer
     {
         $this->modifyCheck();
-        $this->keywordPath = $keywordPath;
+        $this->defaultWordBank = $defaultWordBank;
         return $this;
     }
 
@@ -182,8 +233,11 @@ class KeywordServer implements KeywordClientInter
             $config->setBacklog($this->backlog);
             $config->setAsyncCallback(false);
             $config->setWorkerIndex($i);
-            $config->setKeywordPath($this->keywordPath);
+            $config->setDefaultWordBank($this->defaultWordBank);
             $config->setMaxMem($this->maxMem);
+            $config->setExportPath($this->exportPath);
+            $config->setDefaultPath($this->exportPath);
+            $config->setSeparator($this->separator);
             $array[$i] = new KeywordProcess($config);
         }
         return $array;
@@ -228,7 +282,6 @@ class KeywordServer implements KeywordClientInter
         for ($i=1;$i<=$this->processNum;$i++){
             $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
         }
-        return true;
     }
 
     public function remove($keyword, float $timeout = 1.0)
@@ -242,7 +295,6 @@ class KeywordServer implements KeywordClientInter
         for ($i=1;$i<=$this->processNum;$i++){
             $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
         }
-        return true;
     }
 
     public function search($keyword, float $timeout = 1.0)
@@ -254,6 +306,33 @@ class KeywordServer implements KeywordClientInter
         $pack->setCommand($pack::ACTION_SEARCH);
         $pack->setKeyword($keyword);
         return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
+    }
+
+    public function export($fileName, $separator='@es@', float $timeout=1.0)
+    {
+        if ($this->processNum <= 0) {
+            return false;
+        }
+        $pack = new Package();
+        $pack->setCommand($pack::ACTION_EXPORT);
+        $pack->setFileName($fileName);
+        $pack->setSeparator($separator);
+        return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
+    }
+
+    public function import($fileName, $separator='@es@', $isCover=false, float $timeout=1.0)
+    {
+        if ($this->processNum <= 0) {
+            return false;
+        }
+        $pack = new Package();
+        $pack->setCommand($pack::ACTION_IMPORT);
+        $pack->setFileName($fileName);
+        $pack->setSeparator($separator);
+        $pack->setCover($isCover);
+        for ($i=1;$i<=$this->processNum;$i++){
+            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
+        }
     }
 
 }
