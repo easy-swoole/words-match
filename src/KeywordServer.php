@@ -31,6 +31,7 @@ class KeywordServer implements KeywordClientInter
     private $exportPath = '';
     private $defaultPath = '';
     private $separator='@es@';
+    private $importPath = '';
 
     function __construct()
     {
@@ -79,6 +80,21 @@ class KeywordServer implements KeywordClientInter
     {
         $this->modifyCheck();
         $this->exportPath = $exportPath;
+        return $this;
+    }
+
+    /**
+     * 设置导入路径
+     *
+     * @param string $importPath
+     * @return KeywordServer
+     * @throws RuntimeError
+     * CreateTime: 2019/10/30 上午12:25
+     */
+    public function setImportPath(string $importPath): KeywordServer
+    {
+        $this->modifyCheck();
+        $this->importPath = $importPath;
         return $this;
     }
 
@@ -238,6 +254,7 @@ class KeywordServer implements KeywordClientInter
             $config->setExportPath($this->exportPath);
             $config->setDefaultPath($this->exportPath);
             $config->setSeparator($this->separator);
+            $config->setImportPath($this->importPath);
             $array[$i] = new KeywordProcess($config);
         }
         return $array;
