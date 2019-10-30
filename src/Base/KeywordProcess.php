@@ -11,13 +11,16 @@ use EasySwoole\Keyword\Exception\RuntimeError;
 use EasySwoole\Keyword\Base\TreeManager;
 use Swoole\Coroutine\Socket;
 use EasySwoole\Keyword\Base\Protocol;
-use EasySwoole\Keyword\Package;
+use EasySwoole\Keyword\Base\Package;
 
 class KeywordProcess extends AbstractUnixProcess
 {
 
     /** @var $tree TreeManager*/
     private $tree;
+
+    /** @var $config KeywordProcessConfig */
+    private $config;
 
     /**
      * 关键词服务运行
@@ -29,37 +32,13 @@ class KeywordProcess extends AbstractUnixProcess
     public function run($arg)
     {
         // TODO: Implement run() method.
-        /** @var $processConfig KeywordProcessConfig*/
-        $processConfig = $this->getConfig();
-        ini_set('memory_limit',$processConfig->getMaxMem());
+        $this->config = $this->getConfig();
+        ini_set('memory_limit',$this->config->getMaxMem());
         $this->tree = new TreeManager();
-        if (!empty($processConfig->getKeywordPath())) {
-            $this->generateTree($processConfig->getKeywordPath());
+        if (!empty($this->config->getDefaultWordBank())) {
+            $this->generateTree($this->config->getDefaultWordBank(), $this->config->getSeparator());
         }
-        parent::run($processConfig);
-    }
-
-    /**
-     * 生成字典树
-     *
-     * @param $file
-     * CreateTime: 2019/10/21 下午11:33
-     */
-    private function generateTree($file)
-    {
-        $file = fopen($file, 'ab+');
-        if ($file === false) {
-            return false;
-        }
-        while (!feof($file)) {
-            $line = trim(fgets($file));
-            if (empty($line)) {
-                continue;
-            }
-            $lineArr = explode("\t", $line);
-            $keyword = array_shift($lineArr);
-            $this->tree->append($keyword, $lineArr);
-        }
+        parent::run($this->config);
     }
 
     function onAccept(Socket $socket)
@@ -91,28 +70,111 @@ class KeywordProcess extends AbstractUnixProcess
         $replayData = null;
         $fromPackage = unserialize($commandPayload);
         if ($fromPackage instanceof Package) {
-            $keyword = $fromPackage->getKeyword();
             switch ($fromPackage->getCommand()) {
                 case $fromPackage::ACTION_APPEND:
                     {
+                        $keyword = $fromPackage->getKeyword();
                         $otherInfo = $fromPackage->getOtherInfo();
                         $this->tree->append($keyword, $otherInfo);
                     }
                     break;
                 case $fromPackage::ACTION_SEARCH:
                     {
+                        $keyword = $fromPackage->getKeyword();
                         $replayData = $this->tree->search($keyword);
                     }
                     break;
                 case $fromPackage::ACTION_REMOVE:
                     {
+                        $keyword = $fromPackage->getKeyword();
                         $replayData = $this->tree->remove($keyword);
                     }
                     break;
+                case $fromPackage::ACTION_EXPORT:
+                    {
+                        $exportPath = $this->config->getExportPath();
+                        if (empty($exportPath)) {
+                            $exportPath = $this->config->getDefaultPath();
+                        }
+                        if (!file_exists($exportPath)) {
+                            @mkdir($exportPath, 0777);
+                        }
+                        $fileName = $fromPackage->getFileName();
+                        $separator = $fromPackage->getSeparator();
+                        $nodeTree = $this->tree->getTree();
+                        $file = fopen($exportPath.$fileName, 'w+');
+                        $this->recursiveExportWord($file, $nodeTree, $separator);
+                        fclose($file);
+                    }
+                    break;
+                case $fromPackage::ACTION_IMPORT:
+                    {
+                        $replayData = true;
+                        $importPath = $this->config->getImportPath();
+                        if (empty($exportPath)) {
+                            $exportPath = $this->config->getDefaultPath();
+                        }
+                        if (!file_exists($exportPath)) {
+                            return false;
+                        }
+                        $fileName = $fromPackage->getFileName();
+                        $separator = $fromPackage->getSeparator();
+                        $isCover = $fromPackage->getCover();
+                        if ($isCover) {
+                            $this->tree = new TreeManager();
+                        }
+                        $this->generateTree($importPath.$fileName, $separator);
+                    }
+                    break;
                 default:
-
             }
         }
         return $replayData;
+    }
+
+    /**
+     * 生成字典树
+     *
+     * @param $file
+     * @param $separator
+     * CreateTime: 2019/10/21 下午11:33
+     */
+    private function generateTree($file, $separator)
+    {
+        $file = fopen($file, 'ab+');
+        if ($file === false) {
+            return false;
+        }
+        while (!feof($file)) {
+            $line = trim(fgets($file));
+            if (empty($line)) {
+                continue;
+            }
+            $lineArr = explode($separator, $line);
+            $keyword = array_shift($lineArr);
+            $this->tree->append($keyword, $lineArr);
+        }
+    }
+
+    private function recursiveExportWord($file, $childs, $separator)
+    {
+        foreach ($childs as $childInfo) {
+            if ($childInfo['end']) {
+                $other = $childInfo['other'];
+                $lineArr = [];
+                $writeLine='';
+                if (empty($other)) {
+                    $writeLine = $childInfo['keyword']."\n";
+                } else {
+                    array_unshift($other, $childInfo['keyword']);
+                    $writeLine = implode($separator, $other)."\n";
+                }
+                fwrite($file, $writeLine);
+            }
+            if (empty($childInfo['child'])) {
+                continue;
+            }
+            $this->recursiveExportWord($file, $childInfo['child'], $separator);
+        }
     }
 }

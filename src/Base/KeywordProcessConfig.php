@@ -14,7 +14,11 @@ class KeywordProcessConfig extends UnixProcessConfig
     protected $backlog;
     protected $workerIndex;
     protected $maxMem = '512M';
-    protected $keywordPath='';
+    protected $defaultWordBank='';
+    protected $exportPath='';
+    protected $defaultPath='';
+    protected $separator='@es@';
+    protected $importPath='';
 
     public function getTempDir()
     {
@@ -86,13 +90,54 @@ class KeywordProcessConfig extends UnixProcessConfig
         $this->maxMem = $maxMem;
     }
 
-    public function getKeywordPath(): string
+    public function getDefaultWordBank(): string
     {
-        return $this->keywordPath;
+        return $this->defaultWordBank;
     }
 
-    public function setKeywordPath(string $keywordPath): void
+    public function setDefaultWordBank(string $defaultWordBank): void
     {
-        $this->keywordPath = $keywordPath;
+        $this->defaultWordBank = $defaultWordBank;
     }
+
+    public function setExportPath(string $exportPath): void
+    {
+        $this->exportPath = $exportPath;
+    }
+
+    public function getExportPath(): string
+    {
+        return $this->exportPath;
+    }
+
+    public function setDefaultPath(string $path): void
+    {
+        $this->defaultPath = $path;
+    }
+
+    public function getDefaultPath(): string
+    {
+        return $this->defaultPath;
+    }
+
+    public function setSeparator(string $separator): void
+    {
+        $this->separator = $separator;
+    }
+
+    public function getSeparator(): string
+    {
+        return $this->separator;
+    }
+
+    public function setImportPath(string $importPath): void
+    {
+        $this->importPath = $importPath;
+    }
+
+    public function getImportPath(): string
+    {
+        return $this->importPath;
+    }
+
 }
