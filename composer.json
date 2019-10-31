@@ -1,5 +1,5 @@
 {
-    "name": "easyswoole/keyword",
+    "name": "easyswoole/WordsMatch",
     "type": "library",
     "description": "An efficient swoole framework",
     "keywords" : ["swoole", "framework", "async","easyswoole"],
@@ -13,7 +13,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "EasySwoole\\Keyword\\": "src/"
+            "EasySwoole\\WordsMatch\\": "src/"
         }
     },
     "require-dev": {
