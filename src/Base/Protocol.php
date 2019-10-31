@@ -6,7 +6,7 @@
  * @Description:  解压包头
  */
 
-namespace EasySwoole\Keyword\Base;
+namespace EasySwoole\WordsMatch\Base;
 
 class Protocol
 {

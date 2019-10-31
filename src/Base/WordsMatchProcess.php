@@ -5,21 +5,21 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词进程
  */
-namespace EasySwoole\Keyword\Base;
+namespace EasySwoole\WordsMatch\Base;
 use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
-use EasySwoole\Keyword\Exception\RuntimeError;
-use EasySwoole\Keyword\Base\TreeManager;
+use EasySwoole\WordsMatch\Exception\RuntimeError;
+use EasySwoole\WordsMatch\Base\TreeManager;
 use Swoole\Coroutine\Socket;
-use EasySwoole\Keyword\Base\Protocol;
-use EasySwoole\Keyword\Base\Package;
+use EasySwoole\WordsMatch\Base\Protocol;
+use EasySwoole\WordsMatch\Base\Package;
 
-class KeywordProcess extends AbstractUnixProcess
+class WordsMatchProcess extends AbstractUnixProcess
 {
 
     /** @var $tree TreeManager*/
     private $tree;
 
-    /** @var $config KeywordProcessConfig */
+    /** @var $config WordsMatchProcessConfig */
     private $config;
 
     /**
@@ -73,21 +73,21 @@ class KeywordProcess extends AbstractUnixProcess
             switch ($fromPackage->getCommand()) {
                 case $fromPackage::ACTION_APPEND:
                     {
-                        $keyword = $fromPackage->getKeyword();
+                        $word = $fromPackage->getWord();
                         $otherInfo = $fromPackage->getOtherInfo();
-                        $this->tree->append($keyword, $otherInfo);
+                        $this->tree->append($word, $otherInfo);
                     }
                     break;
                 case $fromPackage::ACTION_SEARCH:
                     {
-                        $keyword = $fromPackage->getKeyword();
-                        $replayData = $this->tree->search($keyword);
+                        $word = $fromPackage->getWord();
+                        $replayData = $this->tree->search($word);
                     }
                     break;
                 case $fromPackage::ACTION_REMOVE:
                     {
-                        $keyword = $fromPackage->getKeyword();
-                        $replayData = $this->tree->remove($keyword);
+                        $word = $fromPackage->getWord();
+                        $replayData = $this->tree->remove($word);
                     }
                     break;
                 case $fromPackage::ACTION_EXPORT:
@@ -151,8 +151,8 @@ class KeywordProcess extends AbstractUnixProcess
                 continue;
             }
             $lineArr = explode($separator, $line);
-            $keyword = array_shift($lineArr);
-            $this->tree->append($keyword, $lineArr);
+            $word = array_shift($lineArr);
+            $this->tree->append($word, $lineArr);
         }
     }
 
@@ -164,9 +164,9 @@ class KeywordProcess extends AbstractUnixProcess
                 $lineArr = [];
                 $writeLine='';
                 if (empty($other)) {
-                    $writeLine = $childInfo['keyword']."\n";
+                    $writeLine = $childInfo['word']."\n";
                 } else {
-                    array_unshift($other, $childInfo['keyword']);
+                    array_unshift($other, $childInfo['word']);
                     $writeLine = implode($separator, $other)."\n";
                 }
                 fwrite($file, $writeLine);

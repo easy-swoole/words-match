@@ -5,12 +5,12 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词服务通讯包
  */
-namespace EasySwoole\Keyword\Base;
+namespace EasySwoole\WordsMatch\Base;
 
 class Package
 {
     protected $command;
-    protected $keyword;
+    protected $word;
     protected $otherInfo=[];
     protected $fileName;
     protected $separator;
@@ -36,17 +36,17 @@ class Package
     /**
      * 设置关键词
      *
-     * @param string $keyword
+     * @param string $word
      * CreateTime: 2019/10/21 下午11:36
      */
-    public function setKeyword(string $keyword)
+    public function setWord(string $word)
     {
-        $this->keyword = trim($keyword);
+        $this->word = trim($word);
     }
 
-    public function getKeyword(): string
+    public function getWord(): string
     {
-        return $this->keyword;
+        return $this->word;
     }
 
     public function setOtherInfo($otherInfo): void

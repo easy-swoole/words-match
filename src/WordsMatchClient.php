@@ -5,12 +5,12 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词客户端
  */
-namespace EasySwoole\Keyword;
+namespace EasySwoole\WordsMatch;
 
 use EasySwoole\Component\Singleton;
-use EasySwoole\Keyword\KeywordServer;
+use EasySwoole\WordsMatch\WordsMatchServer;
 
-class KeywordClient extends KeywordServer
+class WordsMatchClient extends WordsMatchServer
 {
 
 }

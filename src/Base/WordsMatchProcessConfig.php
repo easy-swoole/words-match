@@ -5,10 +5,10 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词进程配置
  */
-namespace EasySwoole\Keyword\Base;
+namespace EasySwoole\WordsMatch\Base;
 use EasySwoole\Component\Process\Socket\UnixProcessConfig;
 
-class KeywordProcessConfig extends UnixProcessConfig
+class WordsMatchProcessConfig extends UnixProcessConfig
 {
     protected $tempDir;
     protected $backlog;

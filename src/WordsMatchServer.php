@@ -5,19 +5,19 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词服务端
  */
-namespace EasySwoole\Keyword;
+namespace EasySwoole\WordsMatch;
 
 use swoole_server;
 use EasySwoole\Component\Singleton;
-use EasySwoole\Keyword\Base\Package;
-use EasySwoole\Keyword\Base\Protocol;
-use EasySwoole\Keyword\Base\UnixClient;
-use EasySwoole\Keyword\Base\KeywordProcess;
-use EasySwoole\Keyword\Base\KeywordClientInter;
-use EasySwoole\Keyword\Base\KeywordProcessConfig;
-use EasySwoole\Keyword\Exception\RuntimeError;
+use EasySwoole\WordsMatch\Base\Package;
+use EasySwoole\WordsMatch\Base\Protocol;
+use EasySwoole\WordsMatch\Base\UnixClient;
+use EasySwoole\WordsMatch\Base\WordsMatchProcess;
+use EasySwoole\WordsMatch\Base\WordsMatchClientInter;
+use EasySwoole\WordsMatch\Base\WordsMatchProcessConfig;
+use EasySwoole\WordsMatch\Exception\RuntimeError;
 
-class KeywordServer implements KeywordClientInter
+class WordsMatchServer implements WordsMatchClientInter
 {
     use Singleton;
 
@@ -42,11 +42,11 @@ class KeywordServer implements KeywordClientInter
      * 设置分隔符
      *
      * @param string $separator
-     * @return KeywordServer
+     * @return WordsMatchServer
      * @throws RuntimeError
      * CreateTime: 2019/10/30 上午12:25
      */
-    public function setSeparator(string $separator): KeywordServer
+    public function setSeparator(string $separator): WordsMatchServer
     {
         $this->modifyCheck();
         $this->separator = $separator;
@@ -57,11 +57,11 @@ class KeywordServer implements KeywordClientInter
      * 设置关键词默认路径
      *
      * @param string $path
-     * @return KeywordServer
+     * @return WordsMatchServer
      * @throws RuntimeError
      * CreateTime: 2019/10/30 上午12:25
      */
-    public function setDefaultPath(string $path): KeywordServer
+    public function setDefaultPath(string $path): WordsMatchServer
     {
         $this->modifyCheck();
         $this->defaultPath = $path;
@@ -72,11 +72,11 @@ class KeywordServer implements KeywordClientInter
      * 设置导出路径
      *
      * @param string $exportPath
-     * @return KeywordServer
+     * @return WordsMatchServer
      * @throws RuntimeError
      * CreateTime: 2019/10/30 上午12:25
      */
-    public function setExportPath(string $exportPath): KeywordServer
+    public function setExportPath(string $exportPath): WordsMatchServer
     {
         $this->modifyCheck();
         $this->exportPath = $exportPath;
@@ -87,11 +87,11 @@ class KeywordServer implements KeywordClientInter
      * 设置导入路径
      *
      * @param string $importPath
-     * @return KeywordServer
+     * @return WordsMatchServer
      * @throws RuntimeError
      * CreateTime: 2019/10/30 上午12:25
      */
-    public function setImportPath(string $importPath): KeywordServer
+    public function setImportPath(string $importPath): WordsMatchServer
     {
         $this->modifyCheck();
         $this->importPath = $importPath;
@@ -104,9 +104,9 @@ class KeywordServer implements KeywordClientInter
      * @param string $maxMem
      * CreateTime: 2019/10/24 上午1:10
      * @throws RuntimeError
-     * @return KeywordServer
+     * @return WordsMatchServer
      */
-    public function setMaxMem(string $maxMem='512M'): KeywordServer
+    public function setMaxMem(string $maxMem='512M'): WordsMatchServer
     {
         $this->modifyCheck();
         $this->maxMem = $maxMem;
@@ -117,11 +117,11 @@ class KeywordServer implements KeywordClientInter
      * 设置临时目录
      *
      * @param string $tempDir
-     * @return KeywordServer
+     * @return WordsMatchServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午10:35
      */
-    public function setTempDir(string $tempDir): KeywordServer
+    public function setTempDir(string $tempDir): WordsMatchServer
     {
         $this->modifyCheck();
         $this->tempDir = $tempDir;
@@ -132,11 +132,11 @@ class KeywordServer implements KeywordClientInter
      * 设置处理进程数量
      *
      * @param int $num
-     * @return KeywordServer
+     * @return WordsMatchServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午10:36
      */
-    public function setProcessNum(int $num): KeywordServer
+    public function setProcessNum(int $num): WordsMatchServer
     {
         $this->modifyCheck();
         $this->processNum = $num;
@@ -164,11 +164,11 @@ class KeywordServer implements KeywordClientInter
      * 设置服务名称
      *
      * @param string $serverName
-     * @return KeywordServer
+     * @return WordsMatchServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午10:36
      */
-    public function setServerName(string $serverName): KeywordServer
+    public function setServerName(string $serverName): WordsMatchServer
     {
         $this->modifyCheck();
         $this->serverName = $serverName;
@@ -179,11 +179,11 @@ class KeywordServer implements KeywordClientInter
      * 设置内部定时器的回调方法(用于数据落地)
      *
      * @param $onTick
-     * @return KeywordServer
+     * @return WordsMatchServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午10:36
      */
-    public function setOnTick($onTick): KeywordServer
+    public function setOnTick($onTick): WordsMatchServer
     {
         $this->modifyCheck();
         $this->onTick = $onTick;
@@ -194,11 +194,11 @@ class KeywordServer implements KeywordClientInter
      * 设置默认词库
      *
      * @param string $defaultWordBank
-     * @return KeywordServer
+     * @return WordsMatchServer
      * @throws RuntimeError
      * CreateTime: 2019/10/21 下午11:30
      */
-    public function setDefaultWordBank(string $defaultWordBank): KeywordServer
+    public function setDefaultWordBank(string $defaultWordBank): WordsMatchServer
     {
         $this->modifyCheck();
         $this->defaultWordBank = $defaultWordBank;
@@ -226,7 +226,7 @@ class KeywordServer implements KeywordClientInter
     function attachToServer(swoole_server $server)
     {
         $list = $this->initProcess();
-        /** @var $process KeywordProcess*/
+        /** @var $process WordsMatchProcess*/
         foreach ($list as $process) {
             $server->addProcess($process->getProcess());
         }
@@ -242,7 +242,7 @@ class KeywordServer implements KeywordClientInter
         $this->run = true;
         $array = [];
         for ($i = 1; $i <= $this->processNum; $i++) {
-            $config = new KeywordProcessConfig();
+            $config = new WordsMatchProcessConfig();
             $config->setProcessName("{$this->serverName}.Process.{$i}");
             $config->setSocketFile($this->generateSocketByIndex($i));
             $config->setTempDir($this->tempDir);
@@ -255,14 +255,14 @@ class KeywordServer implements KeywordClientInter
             $config->setDefaultPath($this->exportPath);
             $config->setSeparator($this->separator);
             $config->setImportPath($this->importPath);
-            $array[$i] = new KeywordProcess($config);
+            $array[$i] = new WordsMatchProcess($config);
         }
         return $array;
     }
 
     private function generateSocketByIndex($index)
     {
-        return $this->tempDir . "/{$this->serverName}.KeywordProcess.{$index}.sock";
+        return $this->tempDir . "/{$this->serverName}.WordsMatchProcess.{$index}.sock";
     }
 
     private function sendAndRecv($socketFile, Package $package, $timeout)
@@ -287,41 +287,41 @@ class KeywordServer implements KeywordClientInter
         return $this->generateSocketByIndex($index);
     }
 
-    public function append($keyword, array $otherInfo=[], float $timeout = 1.0)
+    public function append($word, array $otherInfo=[], float $timeout = 1.0)
     {
         if ($this->processNum <= 0) {
             return false;
         }
         $pack = new Package();
         $pack->setCommand($pack::ACTION_APPEND);
-        $pack->setKeyword($keyword);
+        $pack->setWord($word);
         $pack->setOtherInfo($otherInfo);
         for ($i=1;$i<=$this->processNum;$i++){
             $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
         }
     }
 
-    public function remove($keyword, float $timeout = 1.0)
+    public function remove($word, float $timeout = 1.0)
     {
         if ($this->processNum <= 0) {
             return false;
         }
         $pack = new Package();
         $pack->setCommand($pack::ACTION_REMOVE);
-        $pack->setKeyword($keyword);
+        $pack->setWord($word);
         for ($i=1;$i<=$this->processNum;$i++){
             $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
         }
     }
 
-    public function search($keyword, float $timeout = 1.0)
+    public function search($word, float $timeout = 1.0)
     {
         if ($this->processNum <= 0) {
             return false;
         }
         $pack = new Package();
         $pack->setCommand($pack::ACTION_SEARCH);
-        $pack->setKeyword($keyword);
+        $pack->setWord($word);
         return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
     }
 

@@ -6,60 +6,60 @@
  * @Description:  关键词字典树
  */
 
-namespace EasySwoole\Keyword\Base;
+namespace EasySwoole\WordsMatch\Base;
 
 class TreeManager
 {
 
     protected $nodeTree = [];
 
-    public function append(string $keyword, array $otherInfo)
+    public function append(string $word, array $otherInfo)
     {
-        $keyword = trim($keyword);
+        $word = trim($word);
         $childTree = &$this->nodeTree;
-        $len = strlen($keyword);
+        $len = strlen($word);
         for ($i = 0; $i < $len; $i++) {
             $code = NULL;
-            $word = NULL;
+            $char = NULL;
             $isEnd = false;
-            $asciiCode = ord($keyword[$i]);
+            $asciiCode = ord($word[$i]);
             $asciiByteNum = $this->judgeAsciiByteNum($asciiCode);
             if ($i < $len-($asciiByteNum-1)) {
                 for ($cursor=0;$cursor<$asciiByteNum; $cursor++) {
-                    $code .= dechex(ord($keyword[$i+$cursor]));
-                    $word .= $keyword[$i+$cursor];
+                    $code .= dechex(ord($word[$i+$cursor]));
+                    $char .= $word[$i+$cursor];
                 }
                 $i += ($asciiByteNum-1);
             }
             if ($i === ($len - 1)) {
                 $isEnd = true;
             }
-            $childTree = &$this->appendWordToTree($childTree, $code, $word, $isEnd, $keyword, $otherInfo);
+            $childTree = &$this->appendWordToTree($childTree, $code, $char, $isEnd, $word, $otherInfo);
         }
 
         unset($childTree);
     }
 
-    public function search(string $keyword) {
-        $search = trim($keyword);
+    public function search(string $word) {
+        $search = trim($word);
         if (empty($search)) {
             return false;
         }
-        $keywordChars = $this->strToChars($keyword);
+        $wordChars = $this->strToChars($word);
         $hitArr = array();
         $tree = &$this->nodeTree;
-        $arrLen = count($keywordChars);
+        $arrLen = count($wordChars);
         $currentIndex = 0;
         for ($i = 0; $i < $arrLen; $i++) {
-            if (isset($tree[$keywordChars[$i]])) {
-                $node = $tree[$keywordChars[$i]];
+            if (isset($tree[$wordChars[$i]])) {
+                $node = $tree[$wordChars[$i]];
                 if ($node['end']) {
-                    $key = md5($node['keyword']);
+                    $key = md5($node['word']);
                     if (isset($hitArr[$key])) {
                         $hitArr[$key]['count'] ++;
                     } else {
                         $hitArr[$key] = array(
-                            'keyword' => $node['keyword'],
+                            'word' => $node['word'],
                             'other' => $node['other'],
                             'count' => 1
                         );
@@ -69,10 +69,10 @@ class TreeManager
                         $tree = &$this->nodeTree;
                         $currentIndex++;
                     } else {
-                        $tree = &$tree[$keywordChars[$i]]['child'];
+                        $tree = &$tree[$wordChars[$i]]['child'];
                     }
                 } else {
-                    $tree = &$tree[$keywordChars[$i]]['child'];
+                    $tree = &$tree[$wordChars[$i]]['child'];
                 }
             } else {
                 $i = $currentIndex;
@@ -81,7 +81,7 @@ class TreeManager
             }
         }
 
-        unset($tree, $keywordChars);
+        unset($tree, $wordChars);
         return $hitArr;
     }
 
@@ -90,21 +90,21 @@ class TreeManager
         return $this->nodeTree;
     }
 
-    public function remove($keyword, $delTree = false): bool
+    public function remove($word, $delTree = false): bool
     {
-        $keyword = trim($keyword);
-        $keywordChars = $this->strToChars($keyword);
-        $keywordLen = count($keywordChars);
+        $word = trim($word);
+        $wordChars = $this->strToChars($word);
+        $wordLen = count($wordChars);
         $childTree = &$this->nodeTree;
         $delIndex = array();
-        for ($i = 0; $i < $keywordLen; $i++) {
-            $code = $keywordChars[$i];
+        for ($i = 0; $i < $wordLen; $i++) {
+            $code = $wordChars[$i];
             if (isset($childTree[$code])) {
                 $delIndex[$i] = [
                     'code' => $code,
                     'index' => &$childTree[$code]
                 ];
-                if ($i === ($keywordLen - 1) && !$childTree[$code]['end']) {
+                if ($i === ($wordLen - 1) && !$childTree[$code]['end']) {
                     return false;
                 }
                 $childTree = &$childTree[$code]['child'];
@@ -112,7 +112,7 @@ class TreeManager
                 return false;
             }
         }
-        $idx = $keywordLen - 1;
+        $idx = $wordLen - 1;
 
         if ($delTree) {
             $delIndex[$idx]['index']['child'] = array();
@@ -126,7 +126,7 @@ class TreeManager
 
         if (count($delIndex[$idx]['index']['child']) > 0) {
             $delIndex[$idx]['index']['end'] = false;
-            unset($delIndex[$idx]['index']['other'], $delIndex[$idx]['index']['keyword']);
+            unset($delIndex[$idx]['index']['other'], $delIndex[$idx]['index']['word']);
             return true;
         }
 
@@ -154,7 +154,7 @@ class TreeManager
         }
         if ($end) {
             $tree[$code]['end'] = true;
-            $tree[$code]['keyword'] = $str;
+            $tree[$code]['word'] = $str;
             $tree[$code]['other'] = $otherInfo;
         }
 

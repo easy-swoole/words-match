@@ -1,5 +1,5 @@
 <?php
-namespace EasySwoole\Keyword\Exception;
+namespace EasySwoole\WordsMatch\Exception;
 
 class RuntimeError extends \Exception
 {
