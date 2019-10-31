@@ -1,5 +1,5 @@
 {
-    "name": "easyswoole/WordsMatch",
+    "name": "easyswoole/words-match",
     "type": "library",
     "description": "An efficient swoole framework",
     "keywords" : ["swoole", "framework", "async","easyswoole"],
