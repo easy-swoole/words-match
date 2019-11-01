@@ -109,12 +109,11 @@ class WordsMatchProcess extends AbstractUnixProcess
                     break;
                 case $fromPackage::ACTION_IMPORT:
                     {
-                        $replayData = true;
                         $importPath = $this->config->getImportPath();
-                        if (empty($exportPath)) {
-                            $exportPath = $this->config->getDefaultPath();
+                        if (empty($importPath)) {
+                            $importPath = $this->config->getDefaultPath();
                         }
-                        if (!file_exists($exportPath)) {
+                        if (!file_exists($importPath)) {
                             return false;
                         }
                         $fileName = $fromPackage->getFileName();
@@ -123,7 +122,7 @@ class WordsMatchProcess extends AbstractUnixProcess
                         if ($isCover) {
                             $this->tree = new TreeManager();
                         }
-                        $this->generateTree($importPath.$fileName, $separator);
+                        $replayData = $this->generateTree($importPath.$fileName, $separator);
                     }
                     break;
                 default:
@@ -138,6 +137,7 @@ class WordsMatchProcess extends AbstractUnixProcess
      * @param $file
      * @param $separator
      * CreateTime: 2019/10/21 下午11:33
+     * @return bool
      */
     private function generateTree($file, $separator)
     {
@@ -154,6 +154,7 @@ class WordsMatchProcess extends AbstractUnixProcess
             $word = array_shift($lineArr);
             $this->tree->append($word, $lineArr);
         }
+        return true;
     }
 
     private function recursiveExportWord($file, $childs, $separator)
@@ -161,8 +162,6 @@ class WordsMatchProcess extends AbstractUnixProcess
         foreach ($childs as $childInfo) {
             if ($childInfo['end']) {
                 $other = $childInfo['other'];
-                $lineArr = [];
-                $writeLine='';
                 if (empty($other)) {
                     $writeLine = $childInfo['word']."\n";
                 } else {

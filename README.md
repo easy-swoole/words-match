@@ -1,8 +1,17 @@
-# 关键词检测服务-Keyword
+---
+title: 关键词检测
+meta:
+  - name: description
+    content: Easyswoole提供了一个基于字典树算法的内容检测组件
+  - name: keywords
+    content: easyswoole,关键词,关键词检测
+---
+
+# 关键词检测服务(words-match)
 
 `感谢Easyswoole开发组的其它小伙伴的耐心指导和AbelZhou开源的字典树供我学习`
 
-Keyword组件底层围绕字典树并基于UnixSock通讯和自定义进程实现的关键词检测服务，开发本组件的目的是帮小伙伴们快速部署关键词检测服务，尤其是对于内容型产品尤为重要。
+words-match组件是基于字典树(DFA)并利用UnixSock通讯和自定义进程实现，开发本组件的目的是帮小伙伴们快速部署关键词检测服务，尤其是对于内容型产品尤为重要。
 
 ::: warning 
  此组件稳定后，会尝试使用AC自动机或其它检测方式，提供底层可配置化检测服务
@@ -11,22 +20,28 @@ Keyword组件底层围绕字典树并基于UnixSock通讯和自定义进程实�
 ## 安装
 
 ```
-composer require easyswoole/keyword
+composer require easyswoole/words-match
 ```
 
 ## 准备词库
 
-第一列为关键词，其它列当命中关键词时会相应返回
+服务启动的时候会一行一行将数据读出来，每一行的第一列为词，其它列为附属信息
 
 ```
-我@es@其它信息1@es@其它信息2
-我是@es@其它信息1
-我叫@es@其它信息1@es@其它信息2@es@其它信息3
+php@es@是世界上@es@最好的语言
+java
+golang
+程序员
+代码
+逻辑
 ```
+::: warning 
+ 注意!!!!!! 服务启动时可以用setDefaultWordBank 方法指定默认加载的词库。
+:::
 
 ## 代码示例
 
-```
+```php
 <?php
 namespace EasySwoole\EasySwoole;
 
@@ -34,8 +49,8 @@ use EasySwoole\EasySwoole\Swoole\EventRegister;
 use EasySwoole\EasySwoole\AbstractInterface\Event;
 use EasySwoole\Http\Request;
 use EasySwoole\Http\Response;
-use EasySwoole\Keyword\KeywordClient;
-use EasySwoole\Keyword\KeywordServer;
+use EasySwoole\WordsMatch\WordsMatchClient;
+use EasySwoole\WordsMatch\WordsMatchServer;
 
 class EasySwooleEvent implements Event
 {
@@ -50,22 +65,22 @@ class EasySwooleEvent implements Event
     public static function mainServerCreate(EventRegister $register)
     {
         // TODO: Implement mainServerCreate() method.
-        KeywordServer::getInstance()
-            ->setMaxMem('1024M')
-            ->setProcessNum(5)
-            ->setServerName('Easyswoole 关键词检测')
-            ->setTempDir(EASYSWOOLE_TEMP_DIR)
-            ->setKeywordPath('/Users/xx/xx/xx/keyword.txt')
-            ->attachToServer(ServerManager::getInstance()
-            ->getSwooleServer());
+        WordsMatchServer::getInstance()
+                ->setMaxMem('1024M') // 每个进程最大内存
+                ->setServerName('Easyswoole 关键词检测') // 服务名称
+                ->setTempDir(EASYSWOOLE_TEMP_DIR) // temp地址
+                ->setDefaultPath('xxx') // 默认路径
+                ->setDefaultWordBank('xxx/xxx.txt') // 服务启动时默认导入的词库文件路径
+                ->setExportPath('xxx') // 默认导出路径，没有则使用默认路径
+                ->setImportPath('xx') // 默认导入路径，没有则使用默认路径
+                ->setSeparator('@es@') // 关键词和其它信息分隔符
+                ->attachToServer(ServerManager::getInstance()->getSwooleServer());
     }
 
     public static function onRequest(Request $request, Response $response): bool
     {
         // TODO: Implement onRequest() method.
-        KeywordClient::getInstance()->append('我叫Easyswoole', []);
-        KeywordClient::getInstance()->append('我叫Es', []);
-        $res = KeywordClient::getInstance()->search('我叫Easyswoole');
+        $res = WordsMatchClient::getInstance()->search('php是世界上最好的语言，其它类型的程序员不认可php的这句话，比如java、golang。');
         var_dump($res);
         return true;
     }
@@ -80,45 +95,47 @@ class EasySwooleEvent implements Event
 ## 命中结果
 
 ```
-array(3) {
-  ["16815254531798dc21ee979d1d9c6675"]=>
+array(4) {
+  ["e1bfd762321e409cee4ac0b6e841963c"]=>
   array(3) {
-    ["keyword"]=>
-    string(3) "我"
+    ["word"]=>
+    string(3) "php"
     ["other"]=>
     array(2) {
       [0]=>
-      string(13) "其它信息1"
+      string(12) "是世界上"
       [1]=>
-      string(13) "其它信息2"
+      string(15) "最好的语言"
+    }
+    ["count"]=>
+    int(2)
+  }
+  ["72d9adf4944f23e5efde37f6364c126f"]=>
+  array(3) {
+    ["word"]=>
+    string(9) "程序员"
+    ["other"]=>
+    array(0) {
     }
     ["count"]=>
     int(1)
   }
-  ["77e4a7023ca547689990f2aa4c81f33b"]=>
+  ["93f725a07423fe1c889f448b33d21f46"]=>
   array(3) {
-    ["keyword"]=>
-    string(6) "我叫"
+    ["word"]=>
+    string(4) "java"
     ["other"]=>
-    array(3) {
-      [0]=>
-      string(13) "其它信息1"
-      [1]=>
-      string(13) "其它信息2"
-      [2]=>
-      string(13) "其它信息3"
+    array(0) {
     }
     ["count"]=>
     int(1)
   }
-  ["1695a633cf1782cab389ab3bf3fcb1a0"]=>
+  ["21cc28409729565fc1a4d2dd92db269f"]=>
   array(3) {
-    ["keyword"]=>
-    string(16) "我叫Easyswoole"
+    ["word"]=>
+    string(6) "golang"
     ["other"]=>
-    array(1) {
-      [0]=>
-      string(12) "附加信息"
+    array(0) {
     }
     ["count"]=>
     int(1)
@@ -126,21 +143,21 @@ array(3) {
 }
 ```
 ::: warning 
- keyword:命中的关键词，other：为关键词其它信息，count：检测文本中的命中次数
+ word:命中的词，other：为其它信息，count：此关键词命中的次数
 :::
 
 ## 支持的方法
 
-#### KeywordServer
+### WordsMatchServer
 
 设置临时目录
 ```
-public function setTempDir(string $tempDir): KeywordServer
+public function setTempDir(string $tempDir): WordsMatchServer
 ```
 
 设置进程数量，默认3
 ```
-public function setProcessNum(int $num): KeywordServer
+public function setProcessNum(int $num): WordsMatchServer
 ```
 
 设置每个进程最多所占内存大小
@@ -155,12 +172,12 @@ public function setBacklog(?int $backlog = null)
 
 设置服务名称
 ```
-public function setServerName(string $serverName): KeywordServer
+public function setServerName(string $serverName): WordsMatchServer
 ```
 
-设置词库路径
+服务启动时默认加载的词库
 ```
-public function setKeywordPath(string $keywordPath): KeywordServer
+public function setDefaultWordBank(string $defaultWordBank): WordsMatchServer
 ```
 
 绑定到当前主服务
@@ -168,11 +185,31 @@ public function setKeywordPath(string $keywordPath): KeywordServer
 function attachToServer(swoole_server $server)
 ```
 
-#### KeywordClient
+词和其它信息的分隔符
+```
+public function setSeparator(string $separator): WordsMatchServer
+```
+
+词库默认路径，导入导出时如果没有指定路径则使用此路径
+```
+public function setDefaultPath(string $path): WordsMatchServer
+```
+
+词库导出路径
+```
+public function setExportPath(string $exportPath): WordsMatchServer
+```
+
+词库导入路径
+```
+public function setImportPath(string $importPath): WordsMatchServer
+```
+
+### WordsMatchClient
 
 向字典树中添加关键词
 ```
-public function append($keyword, array $otherInfo=[], float $timeout = 1.0)
+public function append($word, array $otherInfo=[], float $timeout = 1.0)
 ```
 ::: warning 
 添加一次各进程间会自动同步
@@ -180,13 +217,27 @@ public function append($keyword, array $otherInfo=[], float $timeout = 1.0)
 
 向字典树中移除关键词
 ```
-public function remove($keyword, float $timeout = 1.0)
+public function remove($word, float $timeout = 1.0)
 ```
 ::: warning 
 添加一次各进程间会自动同步
 :::
 
-搜索关键词
+检测关键词
 ```
-public function search($keyword, float $timeout = 1.0)
+public function search($word, float $timeout = 1.0)
+```
+
+导入词库，此方法可以将新词库追加到正在运行的字典树中也可以覆盖字典树，这样就可以做到实时的词库切换
+```
+public function import($fileName, $separator='@es@', $isCover=false, float $timeout=1.0)
+```
+::: warning 
+导入词库后各进程会同步
+:::
+
+
+导出词库，此方法可以将字典树正在运行中的关键词落地到文件中
+```
+public function export($fileName, $separator='@es@', float $timeout=1.0)
 ```
