@@ -36,7 +36,10 @@ class WordsMatchProcess extends AbstractUnixProcess
         ini_set('memory_limit',$this->config->getMaxMem());
         $this->tree = new TreeManager();
         if (!empty($this->config->getDefaultWordBank())) {
-            $this->generateTree($this->config->getDefaultWordBank(), $this->config->getSeparator());
+            $this->generateTree(
+                $this->config->getWordsMatchPath().$this->config->getDefaultWordBank(),
+                $this->config->getSeparator()
+            );
         }
         parent::run($this->config);
     }
@@ -92,37 +95,35 @@ class WordsMatchProcess extends AbstractUnixProcess
                     break;
                 case $fromPackage::ACTION_EXPORT:
                     {
-                        $exportPath = $this->config->getExportPath();
-                        if (empty($exportPath)) {
-                            $exportPath = $this->config->getDefaultPath();
-                        }
-                        if (!file_exists($exportPath)) {
-                            @mkdir($exportPath, 0777);
-                        }
+                        $wordsMatchPath = $this->config->getWordsMatchPath();
                         $fileName = $fromPackage->getFileName();
+                        $fullPath = $wordsMatchPath.$fileName;
+                        $dirName = dirname($fullPath);
+                        if (!file_exists($dirName)) {
+                            @mkdir($dirName, 0777);
+                        }
                         $separator = $fromPackage->getSeparator();
                         $nodeTree = $this->tree->getTree();
-                        $file = fopen($exportPath.$fileName, 'w+');
+                        $file = fopen($fullPath, 'w+');
                         $this->recursiveExportWord($file, $nodeTree, $separator);
                         fclose($file);
                     }
                     break;
                 case $fromPackage::ACTION_IMPORT:
                     {
-                        $importPath = $this->config->getImportPath();
-                        if (empty($importPath)) {
-                            $importPath = $this->config->getDefaultPath();
-                        }
-                        if (!file_exists($importPath)) {
-                            return false;
-                        }
+                        $wordsMatchPath = $this->config->getWordsMatchPath();
                         $fileName = $fromPackage->getFileName();
+                        $fullPath = $wordsMatchPath.$fileName;
+                        $dirName = dirname($fullPath);
+                        if (!file_exists($dirName)) {
+                            @mkdir($dirName, 0777);
+                        }
                         $separator = $fromPackage->getSeparator();
                         $isCover = $fromPackage->getCover();
                         if ($isCover) {
                             $this->tree = new TreeManager();
                         }
-                        $replayData = $this->generateTree($importPath.$fileName, $separator);
+                        $replayData = $this->generateTree($fullPath, $separator);
                     }
                     break;
                 default:
