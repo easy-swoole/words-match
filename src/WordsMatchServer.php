@@ -22,16 +22,14 @@ class WordsMatchServer implements WordsMatchClientInter
     use Singleton;
 
     private $tempDir;
-    private $serverName = 'EasySwoole';
+    private $serverName = 'words-match';
     private $processNum = 3;
     private $run = false;
     private $backlog = 256;
     private $defaultWordBank = '';
     private $maxMem = '512M';
-    private $exportPath = '';
-    private $defaultPath = '';
-    private $separator='@es@';
-    private $importPath = '';
+    private $wordMatchPath = '';
+    private $separator=',';
 
     function __construct()
     {
@@ -61,40 +59,10 @@ class WordsMatchServer implements WordsMatchClientInter
      * @throws RuntimeError
      * CreateTime: 2019/10/30 上午12:25
      */
-    public function setDefaultPath(string $path): WordsMatchServer
+    public function setWordsMatchPath(string $path): WordsMatchServer
     {
         $this->modifyCheck();
-        $this->defaultPath = $path;
-        return $this;
-    }
-
-    /**
-     * 设置导出路径
-     *
-     * @param string $exportPath
-     * @return WordsMatchServer
-     * @throws RuntimeError
-     * CreateTime: 2019/10/30 上午12:25
-     */
-    public function setExportPath(string $exportPath): WordsMatchServer
-    {
-        $this->modifyCheck();
-        $this->exportPath = $exportPath;
-        return $this;
-    }
-
-    /**
-     * 设置导入路径
-     *
-     * @param string $importPath
-     * @return WordsMatchServer
-     * @throws RuntimeError
-     * CreateTime: 2019/10/30 上午12:25
-     */
-    public function setImportPath(string $importPath): WordsMatchServer
-    {
-        $this->modifyCheck();
-        $this->importPath = $importPath;
+        $this->wordMatchPath = $path;
         return $this;
     }
 
@@ -249,12 +217,10 @@ class WordsMatchServer implements WordsMatchClientInter
             $config->setBacklog($this->backlog);
             $config->setAsyncCallback(false);
             $config->setWorkerIndex($i);
+            $config->setWordsMatchPath($this->wordMatchPath);
             $config->setDefaultWordBank($this->defaultWordBank);
             $config->setMaxMem($this->maxMem);
-            $config->setExportPath($this->exportPath);
-            $config->setDefaultPath($this->exportPath);
             $config->setSeparator($this->separator);
-            $config->setImportPath($this->importPath);
             $array[$i] = new WordsMatchProcess($config);
         }
         return $array;
@@ -325,7 +291,7 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
     }
 
-    public function export($fileName, $separator='@es@', float $timeout=1.0)
+    public function export($fileName, $separator=',', float $timeout=1.0)
     {
         if ($this->processNum <= 0) {
             return false;
@@ -337,7 +303,7 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
     }
 
-    public function import($fileName, $separator='@es@', $isCover=false, float $timeout=1.0)
+    public function import($fileName, $separator=',', $isCover=false, float $timeout=1.0)
     {
         if ($this->processNum <= 0) {
             return false;

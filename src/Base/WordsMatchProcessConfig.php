@@ -15,10 +15,7 @@ class WordsMatchProcessConfig extends UnixProcessConfig
     protected $workerIndex;
     protected $maxMem = '512M';
     protected $defaultWordBank='';
-    protected $exportPath='';
-    protected $defaultPath='';
-    protected $separator='@es@';
-    protected $importPath='';
+    protected $separator=',';
 
     public function getTempDir()
     {
@@ -100,24 +97,14 @@ class WordsMatchProcessConfig extends UnixProcessConfig
         $this->defaultWordBank = $defaultWordBank;
     }
 
-    public function setExportPath(string $exportPath): void
+    public function setWordsMatchPath(string $path): void
     {
-        $this->exportPath = $exportPath;
+        $this->wordsMatchPath = $path;
     }
 
-    public function getExportPath(): string
+    public function getWordsMatchPath(): string
     {
-        return $this->exportPath;
-    }
-
-    public function setDefaultPath(string $path): void
-    {
-        $this->defaultPath = $path;
-    }
-
-    public function getDefaultPath(): string
-    {
-        return $this->defaultPath;
+        return $this->wordsMatchPath;
     }
 
     public function setSeparator(string $separator): void
@@ -128,16 +115,6 @@ class WordsMatchProcessConfig extends UnixProcessConfig
     public function getSeparator(): string
     {
         return $this->separator;
-    }
-
-    public function setImportPath(string $importPath): void
-    {
-        $this->importPath = $importPath;
-    }
-
-    public function getImportPath(): string
-    {
-        return $this->importPath;
     }
 
 }
