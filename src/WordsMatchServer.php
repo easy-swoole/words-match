@@ -7,6 +7,7 @@
  */
 namespace EasySwoole\WordsMatch;
 
+use EasySwoole\WordsMatch\Base\SpecialSymbolFilter;
 use swoole_server;
 use EasySwoole\Component\Singleton;
 use EasySwoole\WordsMatch\Base\Package;
@@ -253,7 +254,7 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this->generateSocketByIndex($index);
     }
 
-    public function append($word, array $otherInfo=[], float $timeout = 1.0)
+    public function append(string $word, array $otherInfo=[], float $timeout = 1.0)
     {
         if ($this->processNum <= 0) {
             return false;
@@ -267,7 +268,7 @@ class WordsMatchServer implements WordsMatchClientInter
         }
     }
 
-    public function remove($word, float $timeout = 1.0)
+    public function remove(string $word, float $timeout = 1.0)
     {
         if ($this->processNum <= 0) {
             return false;
@@ -280,18 +281,19 @@ class WordsMatchServer implements WordsMatchClientInter
         }
     }
 
-    public function search($word, float $timeout = 1.0)
+    public function search(string $word, int $type=0, float $timeout = 1.0)
     {
         if ($this->processNum <= 0) {
             return false;
         }
         $pack = new Package();
         $pack->setCommand($pack::ACTION_SEARCH);
+        $pack->setFilterType($type);
         $pack->setWord($word);
         return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
     }
 
-    public function export($fileName, $separator=',', float $timeout=1.0)
+    public function export(string $fileName, string $separator=',', float $timeout=1.0)
     {
         if ($this->processNum <= 0) {
             return false;
@@ -303,7 +305,7 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
     }
 
-    public function import($fileName, $separator=',', $isCover=false, float $timeout=1.0)
+    public function import(string $fileName, string $separator=',', $isCover=false, float $timeout=1.0)
     {
         if ($this->processNum <= 0) {
             return false;

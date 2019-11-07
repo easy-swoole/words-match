@@ -84,6 +84,18 @@ class WordsMatchProcess extends AbstractUnixProcess
                 case $fromPackage::ACTION_SEARCH:
                     {
                         $word = $fromPackage->getWord();
+                        $filterType = $fromPackage->getFilterType();
+                        switch ($filterType) {
+                            case $fromPackage::FILTER_C:
+                                SpecialSymbolFilter::getInstance()->chinese($word);
+                                break;
+                            case $fromPackage::FILTER_CEN:
+                                SpecialSymbolFilter::getInstance()->chineseEnglishNumber($word);
+                                break;
+                            case $fromPackage::FILTER_EMOJI:
+                                SpecialSymbolFilter::getInstance()->filterEmoji($word);
+                                break;
+                        }
                         $replayData = $this->tree->search($word);
                     }
                     break;
