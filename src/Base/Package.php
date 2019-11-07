@@ -15,6 +15,7 @@ class Package
     protected $fileName;
     protected $separator;
     protected $isCover=false;
+    protected $filterType;
 
     const ACTION_SEARCH = 11;
     const ACTION_APPEND = 12;
@@ -22,6 +23,10 @@ class Package
     const ACTION_GET_TREE = 14;
     const ACTION_EXPORT = 15;
     const ACTION_IMPORT = 16;
+
+    const FILTER_C = 1001;
+    const FILTER_CEN = 1002;
+    const FILTER_EMOJI = 1003;
 
     public function getCommand():int
     {
@@ -33,12 +38,6 @@ class Package
         $this->command = $command;
     }
 
-    /**
-     * 设置关键词
-     *
-     * @param string $word
-     * CreateTime: 2019/10/21 下午11:36
-     */
     public function setWord(string $word)
     {
         $this->word = trim($word);
@@ -87,5 +86,15 @@ class Package
     public function getCover(): bool
     {
         return $this->isCover;
+    }
+
+    public function setFilterType(int $type): void
+    {
+        $this->filterType = $type;
+    }
+
+    public function getFilterType(): int
+    {
+        return $this->filterType;
     }
 }
