@@ -305,7 +305,7 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
     }
 
-    public function import(string $fileName, string $separator=',', $isCover=false, float $timeout=1.0)
+    public function import(string $fileName, string $separator=',', bool $isCover=false, float $timeout=1.0)
     {
         if ($this->processNum <= 0) {
             return false;
