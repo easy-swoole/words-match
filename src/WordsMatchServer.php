@@ -31,20 +31,22 @@ class WordsMatchServer implements WordsMatchClientInter
     private $maxMem = '512M';
     private $wordMatchPath = '';
     private $separator=',';
+    private $algorithmType; // 算法类型
+
+    public const DFA='DFA';
+    public const AC='AC';
 
     function __construct()
     {
         $this->tempDir = getcwd();
     }
 
-    /**
-     * 设置分隔符
-     *
-     * @param string $separator
-     * @return WordsMatchServer
-     * @throws RuntimeError
-     * CreateTime: 2019/10/30 上午12:25
-     */
+    public function setAlgorithmType($type=self::DFA)
+    {
+        $this->algorithmType = $type;
+        return $this;
+    }
+
     public function setSeparator(string $separator): WordsMatchServer
     {
         $this->modifyCheck();
@@ -52,14 +54,6 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this;
     }
 
-    /**
-     * 设置关键词默认路径
-     *
-     * @param string $path
-     * @return WordsMatchServer
-     * @throws RuntimeError
-     * CreateTime: 2019/10/30 上午12:25
-     */
     public function setWordsMatchPath(string $path): WordsMatchServer
     {
         $this->modifyCheck();
@@ -67,14 +61,6 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this;
     }
 
-    /**
-     * 设置每个进程所占内存大小
-     *
-     * @param string $maxMem
-     * CreateTime: 2019/10/24 上午1:10
-     * @throws RuntimeError
-     * @return WordsMatchServer
-     */
     public function setMaxMem(string $maxMem='512M'): WordsMatchServer
     {
         $this->modifyCheck();
@@ -82,14 +68,6 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this;
     }
 
-    /**
-     * 设置临时目录
-     *
-     * @param string $tempDir
-     * @return WordsMatchServer
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午10:35
-     */
     public function setTempDir(string $tempDir): WordsMatchServer
     {
         $this->modifyCheck();
@@ -97,14 +75,6 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this;
     }
 
-    /**
-     * 设置处理进程数量
-     *
-     * @param int $num
-     * @return WordsMatchServer
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午10:36
-     */
     public function setProcessNum(int $num): WordsMatchServer
     {
         $this->modifyCheck();
@@ -112,14 +82,6 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this;
     }
 
-    /**
-     * 设置UnixSocket的Backlog队列长度
-     *
-     * @param int|null $backlog
-     * @return $this
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午10:36
-     */
     public function setBacklog(?int $backlog = null)
     {
         $this->modifyCheck();
@@ -129,14 +91,6 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this;
     }
 
-    /**
-     * 设置服务名称
-     *
-     * @param string $serverName
-     * @return WordsMatchServer
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午10:36
-     */
     public function setServerName(string $serverName): WordsMatchServer
     {
         $this->modifyCheck();
@@ -144,14 +98,6 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this;
     }
 
-    /**
-     * 设置内部定时器的回调方法(用于数据落地)
-     *
-     * @param $onTick
-     * @return WordsMatchServer
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午10:36
-     */
     public function setOnTick($onTick): WordsMatchServer
     {
         $this->modifyCheck();
@@ -159,14 +105,6 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this;
     }
 
-    /**
-     * 设置默认词库
-     *
-     * @param string $defaultWordBank
-     * @return WordsMatchServer
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午11:30
-     */
     public function setDefaultWordBank(string $defaultWordBank): WordsMatchServer
     {
         $this->modifyCheck();
@@ -174,12 +112,6 @@ class WordsMatchServer implements WordsMatchClientInter
         return $this;
     }
 
-    /**
-     * 启动后就不允许更改设置
-     *
-     * @throws RuntimeError
-     * CreateTime: 2019/10/21 下午10:38
-     */
     private function modifyCheck()
     {
         if ($this->run) {
@@ -187,11 +119,6 @@ class WordsMatchServer implements WordsMatchClientInter
         }
     }
 
-    /**
-     * 绑定到当前主服务
-     * @param swoole_server $server
-     * @throws \Exception
-     */
     function attachToServer(swoole_server $server)
     {
         $list = $this->initProcess();
@@ -201,11 +128,6 @@ class WordsMatchServer implements WordsMatchClientInter
         }
     }
 
-    /**
-     * 初始化缓存进程
-     * @return array
-     * @throws \Exception
-     */
     private function initProcess(): array
     {
         $this->run = true;
@@ -222,6 +144,7 @@ class WordsMatchServer implements WordsMatchClientInter
             $config->setDefaultWordBank($this->defaultWordBank);
             $config->setMaxMem($this->maxMem);
             $config->setSeparator($this->separator);
+            $config->setAlgorithmType($this->algorithmType);
             $array[$i] = new WordsMatchProcess($config);
         }
         return $array;

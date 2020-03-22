@@ -17,16 +17,16 @@ class Package
     protected $isCover=false;
     protected $filterType;
 
-    const ACTION_SEARCH = 11;
-    const ACTION_APPEND = 12;
-    const ACTION_REMOVE = 13;
-    const ACTION_GET_TREE = 14;
-    const ACTION_EXPORT = 15;
-    const ACTION_IMPORT = 16;
+    public const ACTION_SEARCH = 11;
+    public const ACTION_APPEND = 12;
+    public const ACTION_REMOVE = 13;
+    public const ACTION_GET_TREE = 14;
+    public const ACTION_EXPORT = 15;
+    public const ACTION_IMPORT = 16;
 
-    const FILTER_C = 1001;
-    const FILTER_CEN = 1002;
-    const FILTER_EMOJI = 1003;
+    public const FILTER_C = 1001;
+    public const FILTER_CEN = 1002;
+    public const FILTER_EMOJI = 1003;
 
     public function getCommand():int
     {

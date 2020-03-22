@@ -16,6 +16,7 @@ class WordsMatchProcessConfig extends UnixProcessConfig
     protected $maxMem = '512M';
     protected $defaultWordBank='';
     protected $separator=',';
+    protected $algorithmType;
 
     public function getTempDir()
     {
@@ -115,6 +116,17 @@ class WordsMatchProcessConfig extends UnixProcessConfig
     public function getSeparator(): string
     {
         return $this->separator;
+    }
+
+    public function getAlgorithmType()
+    {
+        return $this->algorithmType;
+    }
+
+
+    public function setAlgorithmType($algorithmType): void
+    {
+        $this->algorithmType = $algorithmType;
     }
 
 }

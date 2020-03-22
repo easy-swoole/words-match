@@ -7,8 +7,10 @@
  */
 namespace EasySwoole\WordsMatch\Base;
 use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
+use EasySwoole\WordsMatch\Ac\Ac;
 use EasySwoole\WordsMatch\Exception\RuntimeError;
-use EasySwoole\WordsMatch\Base\TreeManager;
+use EasySwoole\WordsMatch\Dfa\Dfa;
+use EasySwoole\WordsMatch\WordsMatchServer;
 use Swoole\Coroutine\Socket;
 use EasySwoole\WordsMatch\Base\Protocol;
 use EasySwoole\WordsMatch\Base\Package;
@@ -16,7 +18,7 @@ use EasySwoole\WordsMatch\Base\Package;
 class WordsMatchProcess extends AbstractUnixProcess
 {
 
-    /** @var $tree TreeManager*/
+    /** @var $tree AlgorithmInter*/
     private $tree;
 
     /** @var $config WordsMatchProcessConfig */
@@ -34,7 +36,15 @@ class WordsMatchProcess extends AbstractUnixProcess
         // TODO: Implement run() method.
         $this->config = $this->getConfig();
         ini_set('memory_limit',$this->config->getMaxMem());
-        $this->tree = new TreeManager();
+        switch ($this->config->getAlgorithmType())
+        {
+            case WordsMatchServer::AC:
+                $this->tree = new Ac();
+                break;
+            case WordsMatchServer::DFA:
+                $this->tree = new Dfa();
+                break;
+        }
         if (!empty($this->config->getDefaultWordBank())) {
             $this->generateTree(
                 $this->config->getWordsMatchPath().$this->config->getDefaultWordBank(),
@@ -49,7 +59,7 @@ class WordsMatchProcess extends AbstractUnixProcess
         // TODO: Implement onAccept() method.
         // 收取包头4字节计算包长度 收不到4字节包头丢弃该包
         $header = $socket->recvAll(4, 1);
-        if (strlen($header) != 4) {
+        if (strlen($header) !== 4) {
             $socket->close();
             return;
         }
@@ -57,7 +67,7 @@ class WordsMatchProcess extends AbstractUnixProcess
         // 收包头声明的包长度 包长一致进入命令处理流程
         $allLength = Protocol::packDataLength($header);
         $data = $socket->recvAll($allLength, 1);
-        if (strlen($data) == $allLength) {
+        if (strlen($data) === $allLength) {
             $replyPackage = $this->executeCommand($data);
             $socket->sendAll(Protocol::pack(serialize($replyPackage)));
             $socket->close();
@@ -65,7 +75,6 @@ class WordsMatchProcess extends AbstractUnixProcess
 
         // 否则丢弃该包不进行处理
         $socket->close();
-        return;
     }
 
     protected function executeCommand(?string $commandPayload)
@@ -133,7 +142,7 @@ class WordsMatchProcess extends AbstractUnixProcess
                         $separator = $fromPackage->getSeparator();
                         $isCover = $fromPackage->getCover();
                         if ($isCover) {
-                            $this->tree = new TreeManager();
+                            $this->tree = new Dfa();
                         }
                         $replayData = $this->generateTree($fullPath, $separator);
                     }
@@ -167,6 +176,7 @@ class WordsMatchProcess extends AbstractUnixProcess
             $word = array_shift($lineArr);
             $this->tree->append($word, $lineArr);
         }
+        $this->tree->prepare();
         return true;
     }
 
