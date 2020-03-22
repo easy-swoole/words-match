@@ -9,10 +9,13 @@ class SearchResult {
 
     public $lastIndex;
 
-    public function __construct($state, $words=array(), $index=0) {
+    public $end;
+
+    public function __construct($state, $words=array(), $index=0, $end=-1) {
         $this->lastMatchedState = $state;
         $this->words = $words;
         $this->lastIndex = $index;
+        $this->end = $end;
     }
 
     public function getOutputs() {

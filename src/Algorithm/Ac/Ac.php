@@ -83,7 +83,9 @@ class Ac implements AlgorithmInter
             $wordInfo = $result->getOutputs();
             $wordInfo = $wordInfo[0];
             $key = md5($wordInfo['word']);
+            $wordInfo['end'][] = $result->end;
             if (isset($hitResult[$key])) {
+                $hitResult[$key]['end'][] = $result->end;
                 $hitResult[$key]['count']++;
             } else {
                 $wordInfo['count'] = 1;
@@ -128,7 +130,7 @@ class Ac implements AlgorithmInter
                 // 获取搜索词对应的State值，如果有输出内容，则输出
                 $state = $state->get($word);
                 if (count($state->getOutputs())>0){
-                    return new SearchResult($state, $words, $i+1);
+                    return new SearchResult($state, $words, $i+1, $i);
                 }
             }
         }

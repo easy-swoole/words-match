@@ -1,6 +1,5 @@
 <?php
 namespace EasySwoole\WordsMatch\Algorithm\Ac;
-use EasySwoole\WordsMatch\Algorithm\Ac\DenseEdgeList;
 
 class State {
 
@@ -8,6 +7,7 @@ class State {
     private $edgeList;
     private $fail;
     private $outputs;
+    private $end;
 
     public function __construct($depth) {
         $this->depth = $depth;
@@ -74,5 +74,15 @@ class State {
 
     public function setOutputs($arr=[]){
         $this->outputs = $arr;
+    }
+
+    public function getEnd()
+    {
+        return $this->end;
+    }
+
+    public function setEnd($end)
+    {
+        $this->end = $end;
     }
 }
