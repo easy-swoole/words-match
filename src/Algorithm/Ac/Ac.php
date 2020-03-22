@@ -38,7 +38,7 @@ class Ac implements AlgorithmInter
         $words = CodeTrans::getInstance()->strToChars($word);
         $this->arrKeys = array_unique(array_merge($this->arrKeys, $words));
         $lastState = $this->root->extendAll($words);
-        $lastState->addOutput($word);
+        $lastState->addOutput(['word' => $word, 'other' => $otherInfo]);
     }
 
     private function setFailPointer() {
@@ -77,12 +77,20 @@ class Ac implements AlgorithmInter
 
     public function search(string $words){
         $searcher = new Searcher($this, $this->startSearch($words));
-        $res = [];
+        $hitResult = [];
         while($searcher->hasNext()){
             $result = $searcher->next();
-            $res = array_unique(array_merge($res, $result->getOutputs()));
+            $wordInfo = $result->getOutputs();
+            $wordInfo = $wordInfo[0];
+            $key = md5($wordInfo['word']);
+            if (isset($hitResult[$key])) {
+                $hitResult[$key]['count']++;
+            } else {
+                $wordInfo['count'] = 1;
+                $hitResult[$key] = $wordInfo;
+            }
         }
-        return $res;
+        return $hitResult;
     }
 
     public function startSearch($words) {
