@@ -1,7 +1,8 @@
 <?php
-namespace EasySwoole\WordsMatch\Ac;
+namespace EasySwoole\WordsMatch\Algorithm\Ac;
 
 class Cons {
+
     public $word;
     public $state;
     public $next;

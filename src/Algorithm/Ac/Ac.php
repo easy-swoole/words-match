@@ -5,16 +5,16 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  Ac算法
  */
-namespace EasySwoole\WordsMatch\Ac;
+namespace EasySwoole\WordsMatch\Algorithm\Ac;
 
 use EasySwoole\WordsMatch\Base\AlgorithmInter;
 use EasySwoole\WordsMatch\Exception\RuntimeError;
 use EasySwoole\WordsMatch\Extend\CodeTrans;
-use EasySwoole\WordsMatch\Ac\State;
 use Exception;
 
 class Ac implements AlgorithmInter
 {
+
     private $root;
     private $prepared;
     private $arrKeys;
@@ -132,4 +132,10 @@ class Ac implements AlgorithmInter
         $this->setFailPointer();
         $this->prepared = true;
     }
+
+    public function remove(string $word)
+    {
+        // TODO: Implement prepare() method.
+    }
+
 }

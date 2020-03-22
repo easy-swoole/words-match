@@ -1,6 +1,6 @@
 <?php
-namespace EasySwoole\WordsMatch\Ac;
-use EasySwoole\WordsMatch\Ac\DenseEdgeList;
+namespace EasySwoole\WordsMatch\Algorithm\Ac;
+use EasySwoole\WordsMatch\Algorithm\Ac\DenseEdgeList;
 
 class State {
 

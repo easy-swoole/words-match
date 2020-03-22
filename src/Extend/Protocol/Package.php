@@ -5,7 +5,7 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词服务通讯包
  */
-namespace EasySwoole\WordsMatch\Base;
+namespace EasySwoole\WordsMatch\Extend\Protocol;
 
 class Package
 {

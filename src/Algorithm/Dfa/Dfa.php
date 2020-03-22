@@ -5,10 +5,12 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词字典树
  */
+namespace EasySwoole\WordsMatch\Algorithm\Dfa;
 
-namespace EasySwoole\WordsMatch\Base;
+use EasySwoole\WordsMatch\Base\AlgorithmInter;
+use EasySwoole\WordsMatch\Extend\CodeTrans;
 
-class TreeManager
+class Dfa implements AlgorithmInter
 {
 
     protected $nodeTree = [];
@@ -23,7 +25,7 @@ class TreeManager
             $char = NULL;
             $isEnd = false;
             $asciiCode = ord($word[$i]);
-            $asciiByteNum = $this->judgeAsciiByteNum($asciiCode);
+            $asciiByteNum = CodeTrans::getInstance()->judgeAsciiByteNum($asciiCode);
             if ($i < $len-($asciiByteNum-1)) {
                 for ($cursor=0;$cursor<$asciiByteNum; $cursor++) {
                     $code .= dechex(ord($word[$i+$cursor]));
@@ -45,7 +47,7 @@ class TreeManager
         if (empty($search)) {
             return false;
         }
-        $wordChars = $this->strToChars($word);
+        $wordChars = CodeTrans::getInstance()->strToChars($word);
         $hitArr = array();
         $tree = &$this->nodeTree;
         $arrLen = count($wordChars);
@@ -85,7 +87,7 @@ class TreeManager
         return $hitArr;
     }
 
-    public function getTree()
+    public function getRoot()
     {
         return $this->nodeTree;
     }
@@ -93,7 +95,7 @@ class TreeManager
     public function remove($word, $delTree = false): bool
     {
         $word = trim($word);
-        $wordChars = $this->strToChars($word);
+        $wordChars = CodeTrans::getInstance()->strToChars($word);
         $wordLen = count($wordChars);
         $childTree = &$this->nodeTree;
         $delIndex = array();
@@ -161,39 +163,8 @@ class TreeManager
         return $tree[$code]['child'];
     }
 
-    public function judgeAsciiByteNum($ascii): int
+    public function prepare()
     {
-        $result = 0;
-        if (($ascii >> 7) === 0) {
-            $result = 1;
-        } else if (($ascii >> 4) === 15) {
-            $result = 4;
-        } else if (($ascii >> 5) === 7) {
-            $result = 3;
-        } else if (($ascii >> 6) === 3) {
-            $result = 2;
-        }
-        return $result;
+        // TODO: Implement prepare() method.
     }
-
-    public function strToChars($str): array
-    {
-        $len = strlen($str);
-        $chars = [];
-        for ($i = 0; $i < $len; $i++) {
-            $code = null;
-            $asciiCode = ord($str[$i]);
-            $asciiByteNum = $this->judgeAsciiByteNum($asciiCode);
-            if ($i < $len-($asciiByteNum-1)) {
-                $char = null;
-                for ($cursor=0;$cursor<$asciiByteNum; $cursor++) {
-                    $char .= dechex(ord($str[$i+$cursor]));
-                }
-                $chars[] = $char;
-                $i += ($asciiByteNum-1);
-            }
-        }
-        return $chars;
-    }
-
 }

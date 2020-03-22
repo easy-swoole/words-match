@@ -18,4 +18,6 @@ interface AlgorithmInter
 
     public function prepare();
 
+    public function remove(string $word);
+
 }

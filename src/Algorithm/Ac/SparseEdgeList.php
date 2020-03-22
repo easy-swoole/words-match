@@ -1,7 +1,7 @@
 <?php
-namespace EasySwoole\WordsMatch\Ac;
+namespace EasySwoole\WordsMatch\Algorithm\Ac;
 
-use EasySwoole\WordsMatch\Ac\Cons;
+use EasySwoole\WordsMatch\Algorithm\Ac\Cons;
 
 class SparseEdgeList{
 

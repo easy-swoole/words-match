@@ -1,5 +1,5 @@
 <?php
-namespace EasySwoole\WordsMatch\Ac;
+namespace EasySwoole\WordsMatch\Algorithm\Ac;
 
 class DenseEdgeList{
     private $array;
