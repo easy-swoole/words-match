@@ -1,7 +1,7 @@
 <?php
 /**
  * @CreateTime:   2020-03-22 15:26
- * @Author:       huizhang  <tuzisir@163.com>
+ * @Author:       huizhang  <2788828128@qq.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  Ac算法
  */

@@ -1,7 +1,7 @@
 <?php
 /**
  * @CreateTime:   2020-03-22 15:40
- * @Author:       huizhang <tuzisir@163.com>
+ * @Author:       huizhang <2788828128@qq.com>
  * @Copyright:    copyright(2020) Easyswoole all rights reserved
  * @Description:  编码转换
  */

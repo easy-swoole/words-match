@@ -1,7 +1,7 @@
 <?php
 /**
  * @CreateTime:   2019-10-14 22:43
- * @Author:       huizhang AbelZhou<tuzisir@163.com>
+ * @Author:       huizhang AbelZhou<2788828128@qq.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词字典树
  */

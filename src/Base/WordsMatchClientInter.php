@@ -1,7 +1,7 @@
 <?php
 /**
  * @CreateTime:   2019/10/22 下午11:01
- * @Author:       huizhang  <tuzisir@163.com>
+ * @Author:       huizhang  <2788828128@qq.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词客户端配置
  */
