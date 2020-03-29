@@ -25,11 +25,9 @@ class WordsMatchConfig extends SplBean
 
     protected $backlog = 256;
 
-    protected $defaultWordBank = '';
+    protected $wordBank = '';
 
     protected $maxMem = '512M';
-
-    protected $wordsMatchPath = '';
 
     protected $separator = ',';
 
@@ -59,29 +57,19 @@ class WordsMatchConfig extends SplBean
         return $this->processNum;
     }
 
-    public function isRun()
-    {
-        return $this->run;
-    }
-
     public function getBacklog()
     {
         return $this->backlog;
     }
 
-    public function getDefaultWordBank()
+    public function getWordBank()
     {
-        return $this->defaultWordBank;
+        return $this->wordBank;
     }
 
     public function getMaxMem()
     {
         return $this->maxMem;
-    }
-
-    public function getWordsMatchPath()
-    {
-        return $this->wordsMatchPath;
     }
 
     public function getSeparator()

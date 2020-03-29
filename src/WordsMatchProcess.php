@@ -14,7 +14,6 @@ use EasySwoole\WordsMatch\Base\AlgorithmInter;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Extend\Protocol\Protocol;
-use EasySwoole\WordsMatch\Extend\SpecialSymbolFilter;
 use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
 
 class WordsMatchProcess extends AbstractUnixProcess
@@ -41,9 +40,9 @@ class WordsMatchProcess extends AbstractUnixProcess
                 break;
         }
 
-        if (!empty($this->config->getDefaultWordBank())) {
+        if (!empty($this->config->getWordBank())) {
             $this->generateTree(
-                $this->config->getWordsMatchPath().$this->config->getDefaultWordBank(),
+                $this->config->getWordBank(),
                 $this->config->getSeparator()
             );
         }
@@ -75,119 +74,14 @@ class WordsMatchProcess extends AbstractUnixProcess
         /** @var $fromPackage Package*/
         $replayData = null;
         $fromPackage = unserialize($commandPayload);
-        if ($fromPackage instanceof Package) {
-            $type = $this->config->getAlgorithmType();
-            var_dump($type);
-            switch ($type)
-            {
-                case WordsMatchConfig::AC:
-                    $replayData = $this->execAcCommand($fromPackage);
-                    break;
-                case WordsMatchConfig::DFA:
-                    $replayData = $this->execDfaComment($fromPackage);
-                    break;
-            }
-        }
-        return $replayData;
-    }
-
-    private function execAcCommand(Package $fromPackage)
-    {
-        $replayData = null;
         switch ($fromPackage->getCommand()) {
             case $fromPackage::ACTION_SEARCH:
                 {
-                    $word = $fromPackage->getWord();
-                    $filterType = $fromPackage->getFilterType();
-                    switch ($filterType) {
-                        case $fromPackage::FILTER_C:
-                            SpecialSymbolFilter::getInstance()->chinese($word);
-                            break;
-                        case $fromPackage::FILTER_CEN:
-                            SpecialSymbolFilter::getInstance()->chineseEnglishNumber($word);
-                            break;
-                        case $fromPackage::FILTER_EMOJI:
-                            SpecialSymbolFilter::getInstance()->filterEmoji($word);
-                            break;
-                    }
-                    $replayData = $this->tree->search($word);
+                    $content = $fromPackage->getContent();
+                    $replayData = $this->tree->search($content);
                 }
                 break;
         }
-        return $replayData;
-    }
-
-    private function execDfaComment(Package $fromPackage)
-    {
-        $replayData = null;
-        switch ($fromPackage->getCommand()) {
-            case $fromPackage::ACTION_APPEND:
-                {
-                    $word = $fromPackage->getWord();
-                    $otherInfo = $fromPackage->getOtherInfo();
-                    $this->tree->append($word, $otherInfo);
-                }
-                break;
-            case $fromPackage::ACTION_SEARCH:
-                {
-                    $word = $fromPackage->getWord();
-                    $filterType = $fromPackage->getFilterType();
-                    switch ($filterType) {
-                        case $fromPackage::FILTER_C:
-                            SpecialSymbolFilter::getInstance()->chinese($word);
-                            break;
-                        case $fromPackage::FILTER_CEN:
-                            SpecialSymbolFilter::getInstance()->chineseEnglishNumber($word);
-                            break;
-                        case $fromPackage::FILTER_EMOJI:
-                            SpecialSymbolFilter::getInstance()->filterEmoji($word);
-                            break;
-                    }
-                    $replayData = $this->tree->search($word);
-                }
-                break;
-            case $fromPackage::ACTION_REMOVE:
-                {
-                    $word = $fromPackage->getWord();
-                    $replayData = $this->tree->remove($word);
-                }
-                break;
-            case $fromPackage::ACTION_EXPORT:
-                {
-                    $wordsMatchPath = $this->config->getWordsMatchPath();
-                    $fileName = $fromPackage->getFileName();
-                    $fullPath = $wordsMatchPath.$fileName;
-                    $dirName = dirname($fullPath);
-                    if (!file_exists($dirName)) {
-                        @mkdir($dirName, 0777);
-                    }
-                    $separator = $fromPackage->getSeparator();
-                    $nodeTree = $this->tree->getRoot();
-                    $file = fopen($fullPath, 'w+');
-                    $this->recursiveExportWord($file, $nodeTree, $separator);
-                    fclose($file);
-                }
-                break;
-            case $fromPackage::ACTION_IMPORT:
-                {
-                    $wordsMatchPath = $this->config->getWordsMatchPath();
-                    $fileName = $fromPackage->getFileName();
-                    $fullPath = $wordsMatchPath.$fileName;
-                    $dirName = dirname($fullPath);
-                    if (!file_exists($dirName)) {
-                        @mkdir($dirName, 0777);
-                    }
-                    $separator = $fromPackage->getSeparator();
-                    $isCover = $fromPackage->getCover();
-                    if ($isCover) {
-                        $this->tree = new Dfa();
-                    }
-                    $replayData = $this->generateTree($fullPath, $separator);
-                }
-                break;
-            default:
-        }
-
         return $replayData;
     }
 
@@ -210,23 +104,4 @@ class WordsMatchProcess extends AbstractUnixProcess
         return true;
     }
 
-    private function recursiveExportWord($file, $childs, $separator)
-    {
-        foreach ($childs as $childInfo) {
-            if ($childInfo['end']) {
-                $other = $childInfo['other'];
-                if (empty($other)) {
-                    $writeLine = $childInfo['word']."\n";
-                } else {
-                    array_unshift($other, $childInfo['word']);
-                    $writeLine = implode($separator, $other)."\n";
-                }
-                fwrite($file, $writeLine);
-            }
-            if (empty($childInfo['child'])) {
-                continue;
-            }
-            $this->recursiveExportWord($file, $childInfo['child'], $separator);
-        }
-    }
 }

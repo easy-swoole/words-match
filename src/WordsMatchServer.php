@@ -3,17 +3,18 @@
  * @CreateTime:   2019/10/21 下午10:29
  * @Author:       huizhang  <2788828128@qq.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
- * @Description:  关键词服务端
+ * @Description:  服务端
  */
 namespace EasySwoole\WordsMatch;
 
-use EasySwoole\Component\Process\Exception;
 use swoole_server;
 use EasySwoole\Component\Singleton;
+use EasySwoole\Component\Process\Exception;
+use EasySwoole\WordsMatch\Base\WordsMatchAbstract;
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Config\WordsMatchProcessConfig;
 
-class WordsMatchServer
+class WordsMatchServer extends WordsMatchAbstract
 {
     use Singleton;
 
@@ -53,11 +54,6 @@ class WordsMatchServer
             }
         }
         return $array;
-    }
-
-    private function generateSocketByIndex($index)
-    {
-        return $this->config->getTempDir() . "/{$this->config->getServerName()}.Process.{$index}.sock";
     }
 
 }

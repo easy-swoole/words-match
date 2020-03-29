@@ -10,23 +10,9 @@ namespace EasySwoole\WordsMatch\Extend\Protocol;
 class Package
 {
     protected $command;
-    protected $word;
-    protected $otherInfo=[];
-    protected $fileName;
-    protected $separator;
-    protected $isCover=false;
-    protected $filterType;
+    protected $content;
 
     public const ACTION_SEARCH = 11;
-    public const ACTION_APPEND = 12;
-    public const ACTION_REMOVE = 13;
-    public const ACTION_GET_TREE = 14;
-    public const ACTION_EXPORT = 15;
-    public const ACTION_IMPORT = 16;
-
-    public const FILTER_C = 1001;
-    public const FILTER_CEN = 1002;
-    public const FILTER_EMOJI = 1003;
 
     public function getCommand():int
     {
@@ -38,63 +24,14 @@ class Package
         $this->command = $command;
     }
 
-    public function setWord(string $word)
+    public function setContent(string $word)
     {
         $this->word = trim($word);
     }
 
-    public function getWord(): string
+    public function getContent(): string
     {
-        return $this->word;
+        return $this->content;
     }
 
-    public function setOtherInfo($otherInfo): void
-    {
-        $this->otherInfo = $otherInfo;
-    }
-
-    public function getOtherInfo(): array
-    {
-        return $this->otherInfo;
-    }
-
-    public function setFileName($fileName): void
-    {
-        $this->fileName = $fileName;
-    }
-
-    public function getFileName(): string
-    {
-        return $this->fileName;
-    }
-
-    public function setSeparator($separator): void
-    {
-        $this->separator = $separator;
-    }
-
-    public function getSeparator(): string
-    {
-        return $this->separator;
-    }
-
-    public function setCover(bool $cover): void
-    {
-        $this->isCover = $cover;
-    }
-
-    public function getCover(): bool
-    {
-        return $this->isCover;
-    }
-
-    public function setFilterType(int $type): void
-    {
-        $this->filterType = $type;
-    }
-
-    public function getFilterType(): int
-    {
-        return $this->filterType;
-    }
 }

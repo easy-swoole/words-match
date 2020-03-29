@@ -3,21 +3,19 @@
  * @CreateTime:   2019/10/22 下午10:57
  * @Author:       huizhang  <2788828128@qq.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
- * @Description:  关键词客户端
+ * @Description:  客户端
  */
 namespace EasySwoole\WordsMatch;
 
 use EasySwoole\Component\Singleton;
+use EasySwoole\WordsMatch\Base\WordsMatchAbstract;
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
 use EasySwoole\WordsMatch\Extend\Protocol\Protocol;
 use EasySwoole\WordsMatch\Extend\Protocol\UnixClient;
 
-class WordsMatchClient
+class WordsMatchClient extends WordsMatchAbstract
 {
-
-    /** @var $config WordsMatchConfig */
-    private $config;
 
     use Singleton;
 
@@ -26,55 +24,12 @@ class WordsMatchClient
         $this->config = WordsMatchConfig::getInstance();
     }
 
-    public function append(string $word, array $otherInfo=[], float $timeout = 1.0)
-    {
-        $pack = new Package();
-        $pack->setCommand($pack::ACTION_APPEND);
-        $pack->setWord($word);
-        $pack->setOtherInfo($otherInfo);
-        for ($i=1;$i<=$this->config->getProcessNum();$i++){
-            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
-        }
-    }
-
-    public function remove(string $word, float $timeout = 1.0)
-    {
-        $pack = new Package();
-        $pack->setCommand($pack::ACTION_REMOVE);
-        $pack->setWord($word);
-        for ($i=1;$i<=$this->config->getProcessNum();$i++){
-            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
-        }
-    }
-
-    public function search(string $word, int $type=0, float $timeout = 1.0)
+    public function search(string $content, float $timeout = 1.0)
     {
         $pack = new Package();
         $pack->setCommand($pack::ACTION_SEARCH);
-        $pack->setFilterType($type);
-        $pack->setWord($word);
+        $pack->setContent($content);
         return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
-    }
-
-    public function export(string $fileName, string $separator=',', float $timeout=1.0)
-    {
-        $pack = new Package();
-        $pack->setCommand($pack::ACTION_EXPORT);
-        $pack->setFileName($fileName);
-        $pack->setSeparator($separator);
-        return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
-    }
-
-    public function import(string $fileName, string $separator=',', bool $isCover=false, float $timeout=1.0)
-    {
-        $pack = new Package();
-        $pack->setCommand($pack::ACTION_IMPORT);
-        $pack->setFileName($fileName);
-        $pack->setSeparator($separator);
-        $pack->setCover($isCover);
-        for ($i=1;$i<=$this->config->getProcessNum();$i++){
-            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
-        }
     }
 
     private function sendAndRecv($socketFile, Package $package, $timeout)
@@ -93,14 +48,4 @@ class WordsMatchClient
         return null;
     }
 
-    private function generateSocket(): string
-    {
-        $index = rand(1, $this->config->getProcessNum());
-        return $this->generateSocketByIndex($index);
-    }
-
-    private function generateSocketByIndex($index)
-    {
-        return $this->config->getTempDir() . "/{$this->config->getServerName()}.Process.{$index}.sock";
-    }
 }
