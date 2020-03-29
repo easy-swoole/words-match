@@ -21,8 +21,6 @@ class WordsMatchConfig extends SplBean
 
     protected $processNum = 3;
 
-    protected $run = false;
-
     protected $backlog = 256;
 
     protected $wordBank = '';
