@@ -16,10 +16,8 @@ use EasySwoole\WordsMatch\Config\WordsMatchProcessConfig;
 
 class WordsMatchServer extends WordsMatchAbstract
 {
-    use Singleton;
 
-    /** @var $config WordsMatchConfig*/
-    private $config;
+    use Singleton;
 
     public function setConfig(array $config) : WordsMatchServer
     {
@@ -39,15 +37,16 @@ class WordsMatchServer extends WordsMatchAbstract
     private function initProcess(): array
     {
         $array = [];
-        for ($i = 1; $i <= $this->config->getProcessNum(); $i++) {
+        $config = WordsMatchConfig::getInstance();
+        for ($i = 1; $i <= $config->getProcessNum(); $i++) {
             $processConfig = new WordsMatchProcessConfig();
-            $processConfig->setProcessName($this->config->getServerName().'.Process.'.$i);
+            $processConfig->setProcessName($config->getServerName().'.Process.'.$i);
             $processConfig->setSocketFile($this->generateSocketByIndex($i));
-            $processConfig->setTempDir($this->config->getTempDir());
-            $processConfig->setBacklog($this->config->getBacklog());
+            $processConfig->setTempDir($config->getTempDir());
+            $processConfig->setBacklog($config->getBacklog());
             $processConfig->setAsyncCallback(false);
             $processConfig->setWorkerIndex($i);
-            $processConfig->setMaxMem($this->config->getMaxMem());
+            $processConfig->setMaxMem($config->getMaxMem());
             try {
                 $array[$i] = new WordsMatchProcess($processConfig);
             } catch (Exception $e) {

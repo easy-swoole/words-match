@@ -25,7 +25,7 @@ class WordsMatchConfig extends SplBean
 
     protected $wordBank = '';
 
-    protected $maxMem = '512M';
+    protected $maxMem = 512;
 
     protected $separator = ',';
 
@@ -33,12 +33,6 @@ class WordsMatchConfig extends SplBean
 
     public const DFA='DFA';
     public const AC='AC';
-
-    public function __construct(array $data = null, $autoCreateProperty = false)
-    {
-        $this->tempDir = getcwd();
-        parent::__construct($data, $autoCreateProperty);
-    }
 
     public function getTempDir()
     {

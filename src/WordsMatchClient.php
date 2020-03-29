@@ -9,7 +9,6 @@ namespace EasySwoole\WordsMatch;
 
 use EasySwoole\Component\Singleton;
 use EasySwoole\WordsMatch\Base\WordsMatchAbstract;
-use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
 use EasySwoole\WordsMatch\Extend\Protocol\Protocol;
 use EasySwoole\WordsMatch\Extend\Protocol\UnixClient;
@@ -18,11 +17,6 @@ class WordsMatchClient extends WordsMatchAbstract
 {
 
     use Singleton;
-
-    public function __construct()
-    {
-        $this->config = WordsMatchConfig::getInstance();
-    }
 
     public function search(string $content, float $timeout = 1.0)
     {

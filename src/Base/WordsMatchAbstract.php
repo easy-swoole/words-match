@@ -1,7 +1,4 @@
 <?php
-
-use EasySwoole\WordsMatch\Config\WordsMatchConfig;
-
 /**
  * @CreateTime:   2020/3/29 下午11:03
  * @Author:       huizhang  <tuzisir@163.com>
@@ -9,21 +6,20 @@ use EasySwoole\WordsMatch\Config\WordsMatchConfig;
  * @Description:  客户端、服务端基类
  */
 namespace EasySwoole\WordsMatch\Base;
+use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 
 abstract class WordsMatchAbstract
 {
 
-    /** @var $config WordsMatchConfig */
-    protected $config;
-
-    protected function generateSocket(): string
+    public function generateSocket(): string
     {
-        $index = rand(1, $this->config->getProcessNum());
+        $index = rand(1, WordsMatchConfig::getInstance()->getProcessNum());
         return $this->generateSocketByIndex($index);
     }
 
-    protected function generateSocketByIndex($index)
+    public function generateSocketByIndex($index)
     {
-        return $this->config->getTempDir() . "/{$this->config->getServerName()}.Process.{$index}.sock";
+        $serverName =  WordsMatchConfig::getInstance()->getServerName() . ".Process.{$index}.sock";
+        return  WordsMatchConfig::getInstance()->getTempDir() . "/{$serverName}";
     }
 }

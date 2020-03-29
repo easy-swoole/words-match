@@ -7,6 +7,8 @@
  */
 namespace EasySwoole\WordsMatch;
 
+use EasySwoole\WordsMatch\Config\WordsMatchProcessConfig;
+use EasySwoole\WordsMatch\Exception\RuntimeError;
 use Swoole\Coroutine\Socket;
 use EasySwoole\WordsMatch\Algorithm\Ac\Ac;
 use EasySwoole\WordsMatch\Algorithm\Dfa\Dfa;
@@ -23,14 +25,14 @@ class WordsMatchProcess extends AbstractUnixProcess
     private $tree;
 
     /** @var $config WordsMatchConfig */
-    private $config;
+    private $wordsMatchConfig;
 
     public function run($arg)
     {
-        $this->config = WordsMatchConfig::getInstance();
-        ini_set('memory_limit',$this->config->getMaxMem());
+        $this->wordsMatchConfig = WordsMatchConfig::getInstance();
+        ini_set('memory_limit',$this->getConfig()->getMaxMem().'M');
 
-        switch ($this->config->getAlgorithmType())
+        switch ($this->wordsMatchConfig->getAlgorithmType())
         {
             case WordsMatchConfig::AC:
                 $this->tree = new Ac();
@@ -40,14 +42,16 @@ class WordsMatchProcess extends AbstractUnixProcess
                 break;
         }
 
-        if (!empty($this->config->getWordBank())) {
+        if (file_exists($this->wordsMatchConfig->getWordBank())) {
             $this->generateTree(
-                $this->config->getWordBank(),
-                $this->config->getSeparator()
+                $this->wordsMatchConfig->getWordBank(),
+                $this->wordsMatchConfig->getSeparator()
             );
+        } else {
+            throw new RuntimeError('Please set up word bank correctly！');
         }
 
-        parent::run($this->config);
+        parent::run($this->getConfig());
     }
 
     public function onAccept(Socket $socket)

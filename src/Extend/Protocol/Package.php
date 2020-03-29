@@ -24,9 +24,9 @@ class Package
         $this->command = $command;
     }
 
-    public function setContent(string $word)
+    public function setContent(string $content)
     {
-        $this->word = trim($word);
+        $this->content = trim($content);
     }
 
     public function getContent(): string
