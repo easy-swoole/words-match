@@ -7,6 +7,7 @@
  */
 namespace EasySwoole\WordsMatch;
 
+use EasySwoole\Component\AtomicManager;
 use EasySwoole\WordsMatch\Base\SpecialSymbolFilter;
 use swoole_server;
 use EasySwoole\Component\Singleton;
@@ -194,6 +195,7 @@ class WordsMatchServer implements WordsMatchClientInter
      */
     function attachToServer(swoole_server $server)
     {
+        AtomicManager::getInstance()->add('process_num', $this->processNum);
         $list = $this->initProcess();
         /** @var $process WordsMatchProcess*/
         foreach ($list as $process) {
