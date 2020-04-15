@@ -6,6 +6,7 @@
  * @Description:  关键词进程
  */
 namespace EasySwoole\WordsMatch\Base;
+use EasySwoole\Component\AtomicManager;
 use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
 use EasySwoole\WordsMatch\Exception\RuntimeError;
 use EasySwoole\WordsMatch\Base\TreeManager;
@@ -188,5 +189,41 @@ class WordsMatchProcess extends AbstractUnixProcess
             }
             $this->recursiveExportWord($file, $childInfo['child'], $separator);
         }
+    }
+
+    protected function onShutDown()
+    {
+        $atomic = AtomicManager::getInstance()->get('process_num');
+        $atomic->sub();
+        $remainProcess = $atomic->get();
+        if ($remainProcess === 0) {
+
+            $wordsMatchPath = $this->config->getWordsMatchPath();
+
+            $backFileName = 'back_'.$this->config->getDefaultWordBank();
+            $newFullPath = $wordsMatchPath.$backFileName;
+            $dirName = dirname($newFullPath);
+            if (!file_exists($dirName)) {
+                @mkdir($dirName, 0777);
+            }
+
+            $separator = $this->config->getSeparator();
+            $nodeTree = $this->tree->getTree();
+            $file = fopen($newFullPath, 'w+');
+            $this->recursiveExportWord($file, $nodeTree, $separator);
+            fclose($file);
+
+            $fileName = $this->config->getDefaultWordBank();
+            $oldFullPath = $wordsMatchPath.$fileName;
+            $oldBackFullPath = $wordsMatchPath.'old_'.$fileName;
+            rename($oldFullPath, $oldBackFullPath);
+
+            rename($newFullPath, $oldFullPath);
+        }
+    }
+
+    protected function onException(\Throwable $throwable, ...$args)
+    {
+
     }
 }
