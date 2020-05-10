@@ -15,7 +15,7 @@ class WordsMatchConfig extends SplBean
 
     use Singleton;
 
-    protected $tempDir;
+    protected $tempDir=EASYSWOOLE_ROOT.'/Temp/';
 
     protected $serverName = 'words-match';
 

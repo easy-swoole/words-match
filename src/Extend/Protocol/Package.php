@@ -19,7 +19,7 @@ class Package
     public const ACTION_APPEND = 12;
     public const ACTION_REMOVE = 13;
 
-    public function getContent():int
+    public function getContent() : string
     {
         return $this->content;
     }

@@ -60,14 +60,16 @@ class WordsMatchClient extends WordsMatchAbstract
      * 添加词
      *
      * @param string $word
+     * @param array $otherInfo
      * @param float $timeout
      * @return bool
      */
-    public function append(string $word, float $timeout = 3.0) : bool
+    public function append(string $word, array $otherInfo=[], float $timeout = 3.0) : bool
     {
         $pack = new Package();
         $pack->setCommand($pack::ACTION_APPEND);
         $pack->setWord($word);
+        $pack->setOtherInfo($otherInfo);
         $res = $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
         if (empty($res)) {
             return false;

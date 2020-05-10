@@ -7,9 +7,9 @@
  */
 namespace EasySwoole\WordsMatch;
 
+use EasySwoole\WordsMatch\Exception\RuntimeError;
 use swoole_server;
 use EasySwoole\Component\Singleton;
-use EasySwoole\Component\Process\Exception;
 use EasySwoole\WordsMatch\Base\WordsMatchAbstract;
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Config\WordsMatchProcessConfig;
@@ -19,9 +19,13 @@ class WordsMatchServer extends WordsMatchAbstract
 
     use Singleton;
 
-    public function setConfig(array $config) : WordsMatchServer
+    public function setConfig($config) : WordsMatchServer
     {
-        $this->config = WordsMatchConfig::getInstance($config);
+        if (is_array($config)) {
+
+            WordsMatchConfig::getInstance($config);
+
+        }
         return $this;
     }
 
@@ -47,10 +51,7 @@ class WordsMatchServer extends WordsMatchAbstract
             $processConfig->setAsyncCallback(false);
             $processConfig->setWorkerIndex($i);
             $processConfig->setMaxMem($config->getMaxMem());
-            try {
-                $array[$i] = new WordsMatchProcess($processConfig);
-            } catch (Exception $e) {
-            }
+            $array[$i] = new WordsMatchProcess($processConfig);
         }
         return $array;
     }

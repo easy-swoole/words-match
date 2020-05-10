@@ -77,7 +77,8 @@ class WordsMatchProcess extends AbstractUnixProcess
             case $fromPackage::ACTION_REMOVE:
                 {
                     $word = $fromPackage->getWord();
-                    $replayData = $this->tree->remove($word);
+                    $this->tree->remove($word);
+                    $replayData = true;
                 }
                 break;
             case $fromPackage::ACTION_APPEND:
