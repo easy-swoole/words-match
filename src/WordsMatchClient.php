@@ -9,6 +9,7 @@ namespace EasySwoole\WordsMatch;
 
 use EasySwoole\Component\Singleton;
 use EasySwoole\WordsMatch\Base\WordsMatchAbstract;
+use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
 use EasySwoole\WordsMatch\Extend\Protocol\Protocol;
 use EasySwoole\WordsMatch\Extend\Protocol\UnixClient;
@@ -42,18 +43,15 @@ class WordsMatchClient extends WordsMatchAbstract
      *
      * @param string $word
      * @param float $timeout
-     * @return bool
      */
-    public function remove(string $word, float $timeout = 3.0) : bool
+    public function remove(string $word, float $timeout = 3.0)
     {
         $pack = new Package();
         $pack->setCommand($pack::ACTION_REMOVE);
         $pack->setWord($word);
-        $res = $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
-        if (empty($res)) {
-            return false;
+        for ($i=1;$i<=WordsMatchConfig::getInstance()->getProcessNum();$i++){
+            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
         }
-        return true;
     }
 
     /**
@@ -62,19 +60,16 @@ class WordsMatchClient extends WordsMatchAbstract
      * @param string $word
      * @param array $otherInfo
      * @param float $timeout
-     * @return bool
      */
-    public function append(string $word, array $otherInfo=[], float $timeout = 3.0) : bool
+    public function append(string $word, array $otherInfo=[], float $timeout = 3.0)
     {
         $pack = new Package();
         $pack->setCommand($pack::ACTION_APPEND);
         $pack->setWord($word);
         $pack->setOtherInfo($otherInfo);
-        $res = $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
-        if (empty($res)) {
-            return false;
+        for ($i=1;$i<=WordsMatchConfig::getInstance()->getProcessNum();$i++){
+            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
         }
-        return true;
     }
 
     private function sendAndRecv($socketFile, Package $package, $timeout)

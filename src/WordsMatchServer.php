@@ -19,13 +19,9 @@ class WordsMatchServer extends WordsMatchAbstract
 
     use Singleton;
 
-    public function setConfig($config) : WordsMatchServer
+    public function setConfig(string $config) : WordsMatchServer
     {
-        if (is_array($config)) {
-
-            WordsMatchConfig::getInstance($config);
-
-        }
+        WordsMatchConfig::getInstance($config);
         return $this;
     }
 

@@ -78,7 +78,6 @@ class WordsMatchProcess extends AbstractUnixProcess
                 {
                     $word = $fromPackage->getWord();
                     $this->tree->remove($word);
-                    $replayData = true;
                 }
                 break;
             case $fromPackage::ACTION_APPEND:
@@ -86,7 +85,6 @@ class WordsMatchProcess extends AbstractUnixProcess
                     $word = $fromPackage->getWord();
                     $otherInfo = $fromPackage->getOtherInfo();
                     $this->tree->append($word, $otherInfo);
-                    $replayData = true;
                 }
         }
         return $replayData;
