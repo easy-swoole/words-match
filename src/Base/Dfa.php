@@ -5,17 +5,16 @@
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词字典树
  */
-namespace EasySwoole\WordsMatch\Algorithm\Dfa;
+namespace EasySwoole\WordsMatch\Base;
 
-use EasySwoole\WordsMatch\Base\AlgorithmInter;
 use EasySwoole\WordsMatch\Extend\CodeTrans;
 
-class Dfa implements AlgorithmInter
+class Dfa
 {
 
     protected $nodeTree = [];
 
-    public function append(string $word, array $otherInfo)
+    public function append(string $word, array $otherInfo) :void
     {
         $word = trim($word);
         $childTree = &$this->nodeTree;
@@ -42,10 +41,11 @@ class Dfa implements AlgorithmInter
         unset($childTree);
     }
 
-    public function search(string $word) {
+    public function search(string $word) : array
+    {
         $search = trim($word);
         if (empty($search)) {
-            return false;
+            return [];
         }
         $wordChars = CodeTrans::getInstance()->strToChars($word);
         $hitArr = array();
@@ -163,8 +163,9 @@ class Dfa implements AlgorithmInter
         return $tree[$code]['child'];
     }
 
-    public function prepare()
+    public function getTree()
     {
-        // TODO: Implement prepare() method.
+        return $this->nodeTree;
     }
+
 }

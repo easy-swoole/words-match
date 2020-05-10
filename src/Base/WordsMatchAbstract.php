@@ -13,7 +13,7 @@ abstract class WordsMatchAbstract
 
     public function generateSocket(): string
     {
-        $index = rand(1, WordsMatchConfig::getInstance()->getProcessNum());
+        $index = random_int(1, WordsMatchConfig::getInstance()->getProcessNum());
         return $this->generateSocketByIndex($index);
     }
 

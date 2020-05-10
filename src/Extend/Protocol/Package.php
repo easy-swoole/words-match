@@ -10,9 +10,24 @@ namespace EasySwoole\WordsMatch\Extend\Protocol;
 class Package
 {
     protected $command;
+    protected $word;
+    protected $otherInfo=[];
+    protected $separator;
     protected $content;
 
     public const ACTION_SEARCH = 11;
+    public const ACTION_APPEND = 12;
+    public const ACTION_REMOVE = 13;
+
+    public function getContent():int
+    {
+        return $this->content;
+    }
+
+    public function setContent($content): void
+    {
+        $this->content = $content;
+    }
 
     public function getCommand():int
     {
@@ -24,14 +39,25 @@ class Package
         $this->command = $command;
     }
 
-    public function setContent(string $content)
+    public function setWord(string $word)
     {
-        $this->content = trim($content);
+        $this->word = trim($word);
     }
 
-    public function getContent(): string
+    public function getWord(): string
     {
-        return $this->content;
+        return $this->word;
     }
+
+    public function setOtherInfo($otherInfo): void
+    {
+        $this->otherInfo = $otherInfo;
+    }
+
+    public function getOtherInfo(): array
+    {
+        return $this->otherInfo;
+    }
+
 
 }

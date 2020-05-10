@@ -18,12 +18,61 @@ class WordsMatchClient extends WordsMatchAbstract
 
     use Singleton;
 
-    public function search(string $content, float $timeout = 1.0)
+    /**
+     * 检测内容
+     *
+     * @param string $content
+     * @param float $timeout
+     * @return array
+     */
+    public function detect(string $content, float $timeout = 3.0) : array
     {
         $pack = new Package();
         $pack->setCommand($pack::ACTION_SEARCH);
         $pack->setContent($content);
-        return $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
+        $res = $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
+        if (empty($res)) {
+            return [];
+        }
+        return $res;
+    }
+
+    /**
+     * 移除词
+     *
+     * @param string $word
+     * @param float $timeout
+     * @return bool
+     */
+    public function remove(string $word, float $timeout = 3.0) : bool
+    {
+        $pack = new Package();
+        $pack->setCommand($pack::ACTION_REMOVE);
+        $pack->setWord($word);
+        $res = $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
+        if (empty($res)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 添加词
+     *
+     * @param string $word
+     * @param float $timeout
+     * @return bool
+     */
+    public function append(string $word, float $timeout = 3.0) : bool
+    {
+        $pack = new Package();
+        $pack->setCommand($pack::ACTION_APPEND);
+        $pack->setWord($word);
+        $res = $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
+        if (empty($res)) {
+            return false;
+        }
+        return true;
     }
 
     private function sendAndRecv($socketFile, Package $package, $timeout)

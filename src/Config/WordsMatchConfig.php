@@ -29,11 +29,6 @@ class WordsMatchConfig extends SplBean
 
     protected $separator = ',';
 
-    protected $algorithmType;
-
-    public const DFA='DFA';
-    public const AC='AC';
-
     public function getTempDir()
     {
         return $this->tempDir;
@@ -67,11 +62,6 @@ class WordsMatchConfig extends SplBean
     public function getSeparator()
     {
         return $this->separator;
-    }
-
-    public function getAlgorithmType()
-    {
-        return $this->algorithmType;
     }
 
 }
