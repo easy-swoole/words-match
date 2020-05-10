@@ -7,7 +7,7 @@
  */
 namespace EasySwoole\WordsMatch;
 
-use EasySwoole\WordsMatch\Exception\RuntimeError;
+use EasySwoole\WordsMatch\Extend\CommFuncs;
 use swoole_server;
 use EasySwoole\Component\Singleton;
 use EasySwoole\WordsMatch\Base\WordsMatchAbstract;
