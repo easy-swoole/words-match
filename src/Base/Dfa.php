@@ -57,7 +57,6 @@ class Dfa
                 $node = $tree[$wordChars[$i]];
                 if ($node['end']) {
                     $key = md5($node['word']);
-                    echo $i; echo strlen($node['word']);
                     $start = $i-strlen($node['word'])+1;
                     if (isset($hitArr[$key])) {
                         $hitArr[$key]['count'] ++;
