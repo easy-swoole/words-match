@@ -57,17 +57,17 @@ class Dfa
                 $node = $tree[$wordChars[$i]];
                 if ($node['end']) {
                     $key = md5($node['word']);
-                    $locationEnd = $i + 1;
-                    $locationInfo = [$locationEnd-strlen($node['word'])+1, $locationEnd];
+                    echo $i; echo strlen($node['word']);
+                    $start = $i-strlen($node['word'])+1;
                     if (isset($hitArr[$key])) {
                         $hitArr[$key]['count'] ++;
-                        $hitArr[$key]['location'][] = $locationInfo;
+                        $hitArr[$key]['location'][] = $start;
                     } else {
                         $hitArr[$key] = array(
                             'word' => $node['word'],
                             'other' => $node['other'],
                             'count' => 1,
-                            'location' => [$locationInfo]
+                            'location' => [$start]
                         );
                     }
                     if (empty($node['child'])) {
