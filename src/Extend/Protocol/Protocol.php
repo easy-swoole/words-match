@@ -1,12 +1,12 @@
 <?php
 /**
  * @CreateTime:   2019/10/21 下午10:59
- * @Author:       huizhang  <tuzisir@163.com>
+ * @Author:       huizhang  <2788828128@qq.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  解压包头
  */
 
-namespace EasySwoole\WordsMatch\Base;
+namespace EasySwoole\WordsMatch\Extend\Protocol;
 
 class Protocol
 {

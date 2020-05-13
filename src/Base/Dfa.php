@@ -1,19 +1,20 @@
 <?php
 /**
  * @CreateTime:   2019-10-14 22:43
- * @Author:       huizhang AbelZhou<tuzisir@163.com>
+ * @Author:       huizhang AbelZhou<2788828128@qq.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
  * @Description:  关键词字典树
  */
-
 namespace EasySwoole\WordsMatch\Base;
 
-class TreeManager
+use EasySwoole\WordsMatch\Extend\CodeTrans;
+
+class Dfa
 {
 
     protected $nodeTree = [];
 
-    public function append(string $word, array $otherInfo)
+    public function append(string $word, array $otherInfo) :void
     {
         $word = trim($word);
         $childTree = &$this->nodeTree;
@@ -23,7 +24,7 @@ class TreeManager
             $char = NULL;
             $isEnd = false;
             $asciiCode = ord($word[$i]);
-            $asciiByteNum = $this->judgeAsciiByteNum($asciiCode);
+            $asciiByteNum = CodeTrans::getInstance()->judgeAsciiByteNum($asciiCode);
             if ($i < $len-($asciiByteNum-1)) {
                 for ($cursor=0;$cursor<$asciiByteNum; $cursor++) {
                     $code .= dechex(ord($word[$i+$cursor]));
@@ -40,12 +41,13 @@ class TreeManager
         unset($childTree);
     }
 
-    public function search(string $word) {
+    public function search(string $word) : array
+    {
         $search = trim($word);
         if (empty($search)) {
-            return false;
+            return [];
         }
-        $wordChars = $this->strToChars($word);
+        $wordChars = CodeTrans::getInstance()->strToChars($word);
         $hitArr = array();
         $tree = &$this->nodeTree;
         $arrLen = count($wordChars);
@@ -55,13 +57,16 @@ class TreeManager
                 $node = $tree[$wordChars[$i]];
                 if ($node['end']) {
                     $key = md5($node['word']);
+                    $start = $i-strlen($node['word'])+1;
                     if (isset($hitArr[$key])) {
                         $hitArr[$key]['count'] ++;
+                        $hitArr[$key]['location'][] = $start;
                     } else {
                         $hitArr[$key] = array(
                             'word' => $node['word'],
                             'other' => $node['other'],
-                            'count' => 1
+                            'count' => 1,
+                            'location' => [$start]
                         );
                     }
                     if (empty($node['child'])) {
@@ -85,7 +90,7 @@ class TreeManager
         return $hitArr;
     }
 
-    public function getTree()
+    public function getRoot()
     {
         return $this->nodeTree;
     }
@@ -93,7 +98,7 @@ class TreeManager
     public function remove($word, $delTree = false): bool
     {
         $word = trim($word);
-        $wordChars = $this->strToChars($word);
+        $wordChars = CodeTrans::getInstance()->strToChars($word);
         $wordLen = count($wordChars);
         $childTree = &$this->nodeTree;
         $delIndex = array();
@@ -161,39 +166,9 @@ class TreeManager
         return $tree[$code]['child'];
     }
 
-    public function judgeAsciiByteNum($ascii): int
+    public function getTree()
     {
-        $result = 0;
-        if (($ascii >> 7) === 0) {
-            $result = 1;
-        } else if (($ascii >> 4) === 15) {
-            $result = 4;
-        } else if (($ascii >> 5) === 7) {
-            $result = 3;
-        } else if (($ascii >> 6) === 3) {
-            $result = 2;
-        }
-        return $result;
-    }
-
-    public function strToChars($str): array
-    {
-        $len = strlen($str);
-        $chars = [];
-        for ($i = 0; $i < $len; $i++) {
-            $code = null;
-            $asciiCode = ord($str[$i]);
-            $asciiByteNum = $this->judgeAsciiByteNum($asciiCode);
-            if ($i < $len-($asciiByteNum-1)) {
-                $char = null;
-                for ($cursor=0;$cursor<$asciiByteNum; $cursor++) {
-                    $char .= dechex(ord($str[$i+$cursor]));
-                }
-                $chars[] = $char;
-                $i += ($asciiByteNum-1);
-            }
-        }
-        return $chars;
+        return $this->nodeTree;
     }
 
 }

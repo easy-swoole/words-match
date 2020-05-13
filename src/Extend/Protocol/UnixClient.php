@@ -6,7 +6,7 @@
  * Time: 16:07
  */
 
-namespace EasySwoole\WordsMatch\Base;
+namespace EasySwoole\WordsMatch\Extend\Protocol;
 
 use Swoole\Coroutine\Client;
 
@@ -41,9 +41,9 @@ class UnixClient
     {
         if ($this->client->isConnected()) {
             return $this->client->send($rawData);
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     function recv(float $timeout = 0.1)
@@ -52,11 +52,11 @@ class UnixClient
             $ret = $this->client->recv($timeout);
             if (!empty($ret)) {
                 return $ret;
-            } else {
-                return null;
             }
-        } else {
+
             return null;
         }
+
+        return null;
     }
 }
