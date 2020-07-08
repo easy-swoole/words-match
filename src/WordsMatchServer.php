@@ -9,6 +9,7 @@ namespace EasySwoole\WordsMatch;
 
 use swoole_server;
 use EasySwoole\Component\Singleton;
+use EasySwoole\Component\AtomicManager;
 use EasySwoole\WordsMatch\Base\WordsMatchAbstract;
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Config\WordsMatchProcessConfig;
@@ -26,7 +27,8 @@ class WordsMatchServer extends WordsMatchAbstract
 
     public function attachToServer(swoole_server $server)
     {
-        AtomicManager::getInstance()->add('process_num', $this->processNum);
+        $config = WordsMatchConfig::getInstance();
+        AtomicManager::getInstance()->add('process_num', $config->getProcessNum());
         $list = $this->initProcess();
         /** @var $process WordsMatchProcess*/
         foreach ($list as $process) {
