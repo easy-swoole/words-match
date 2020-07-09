@@ -18,8 +18,7 @@ use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
 class WordsMatchProcess extends AbstractUnixProcess
 {
 
-    /** @var $tree Dfa*/
-    private $tree;
+    private $trees=[];
 
     /** @var $config WordsMatchConfig */
     private $wordsMatchConfig;
@@ -29,18 +28,39 @@ class WordsMatchProcess extends AbstractUnixProcess
         $this->wordsMatchConfig = WordsMatchConfig::getInstance();
         ini_set('memory_limit',$this->getConfig()->getMaxMem().'M');
 
-        $this->tree = new Dfa();
-
-        if (file_exists($this->wordsMatchConfig->getWordBank())) {
-            $this->generateTree(
-                $this->wordsMatchConfig->getWordBank(),
-                $this->wordsMatchConfig->getSeparator()
-            );
-        } else {
-            throw new RuntimeError('Please set up word bank correctly！');
-        }
+        $this->buildTrees();
 
         parent::run($this->getConfig());
+    }
+
+    /**
+     * 构建多词库
+     *
+     * @throws RuntimeError
+     */
+    private function buildTrees()
+    {
+        $wordBank = $this->wordsMatchConfig->getWordBank();
+        if (is_array($wordBank))
+        {
+            foreach ($this->wordsMatchConfig->getWordBank() as $key => $item)
+            {
+                if (file_exists($item)) {
+                    $this->trees[$key] = $this->generateTree($item);
+                } else {
+                    throw new RuntimeError('Please set up word bank correctly！');
+                }
+
+            }
+        } else if (is_string($wordBank)) {
+            if (file_exists($wordBank)) {
+                $this->trees['default'] = $this->generateTree($wordBank);
+            } else {
+                throw new RuntimeError('Please set up word bank correctly！');
+            }
+        } else {
+            throw new RuntimeError("WordBank's configuration error!");
+        }
     }
 
     public function onAccept(Socket $socket)
@@ -67,24 +87,31 @@ class WordsMatchProcess extends AbstractUnixProcess
         /** @var $fromPackage Package*/
         $replayData = null;
         $fromPackage = unserialize($commandPayload);
+        $wordBankName = $fromPackage->getWordBankName();
+        if (!isset($this->trees[$wordBankName]))
+        {
+            return $replayData;
+        }
+        /** @var $tree Dfa*/
+        $tree = $this->trees[$wordBankName];
         switch ($fromPackage->getCommand()) {
             case $fromPackage::ACTION_SEARCH:
                 {
                     $content = $fromPackage->getContent();
-                    $replayData = $this->tree->search($content);
+                    $replayData = $tree->search($content);
                 }
                 break;
             case $fromPackage::ACTION_REMOVE:
                 {
                     $word = $fromPackage->getWord();
-                    $this->tree->remove($word);
+                    $tree->remove($word);
                 }
                 break;
             case $fromPackage::ACTION_APPEND:
                 {
                     $word = $fromPackage->getWord();
                     $otherInfo = $fromPackage->getOtherInfo();
-                    $this->tree->append($word, $otherInfo);
+                    $tree->append($word, $otherInfo);
                 }
         }
         return $replayData;
@@ -94,15 +121,16 @@ class WordsMatchProcess extends AbstractUnixProcess
      * 生成字典树
      *
      * @param $file
-     * @param $separator
      * @return bool
      */
-    private function generateTree($file, $separator)
+    private function generateTree($file)
     {
         $file = fopen($file, 'ab+');
         if ($file === false) {
-            return false;
+            throw new RuntimeError("fopen $file fail!");
         }
+        $tree = new Dfa();
+        $separator = $this->wordsMatchConfig->getSeparator();
         while (!feof($file)) {
             $line = trim(fgets($file));
             if (empty($line)) {
@@ -110,9 +138,10 @@ class WordsMatchProcess extends AbstractUnixProcess
             }
             $lineArr = explode($separator, $line);
             $word = array_shift($lineArr);
-            $this->tree->append($word, $lineArr);
+            $tree->append($word, $lineArr);
         }
-        return true;
+
+        return $tree;
     }
 
 }
