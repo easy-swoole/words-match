@@ -13,11 +13,20 @@ use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
 use EasySwoole\WordsMatch\Extend\Protocol\Protocol;
 use EasySwoole\WordsMatch\Extend\Protocol\UnixClient;
+use http\Exception\BadQueryStringException;
 
 class WordsMatchClient extends WordsMatchAbstract
 {
 
     use Singleton;
+
+    protected $wordBankName='default';
+
+    public function setWordBankName(string $wordBankName)
+    {
+        $this->wordBankName = $wordBankName;
+        return $this;
+    }
 
     /**
      * 检测内容
@@ -31,6 +40,7 @@ class WordsMatchClient extends WordsMatchAbstract
         $pack = new Package();
         $pack->setCommand($pack::ACTION_SEARCH);
         $pack->setContent($content);
+        $pack->setWordBankName($this->wordBankName);
         $res = $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
         if (empty($res)) {
             return [];
@@ -49,6 +59,7 @@ class WordsMatchClient extends WordsMatchAbstract
         $pack = new Package();
         $pack->setCommand($pack::ACTION_REMOVE);
         $pack->setWord($word);
+        $pack->setWordBankName($this->wordBankName);
         for ($i=1;$i<=WordsMatchConfig::getInstance()->getProcessNum();$i++){
             $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
         }
@@ -67,6 +78,7 @@ class WordsMatchClient extends WordsMatchAbstract
         $pack->setCommand($pack::ACTION_APPEND);
         $pack->setWord($word);
         $pack->setOtherInfo($otherInfo);
+        $pack->setWordBankName($this->wordBankName);
         for ($i=1;$i<=WordsMatchConfig::getInstance()->getProcessNum();$i++){
             $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
         }
