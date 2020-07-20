@@ -14,7 +14,6 @@ use EasySwoole\WordsMatch\Extend\Protocol\Package;
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Extend\Protocol\Protocol;
 use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
-
 class WordsMatchProcess extends AbstractUnixProcess
 {
 
@@ -23,13 +22,50 @@ class WordsMatchProcess extends AbstractUnixProcess
     /** @var $config WordsMatchConfig */
     private $wordsMatchConfig;
 
+    /**
+     * 启动时执行
+     *
+     * @param $arg
+     * @throws RuntimeError
+     * @throws \EasySwoole\Component\Process\Exception
+     */
     public function run($arg)
     {
         $this->wordsMatchConfig = WordsMatchConfig::getInstance();
         ini_set('memory_limit',$this->getConfig()->getMaxMem().'M');
 
-        $this->buildTrees();
+        $treesCacheFile = EASYSWOOLE_ROOT.'/Temp/words-match-trees';
+        if (file_exists($treesCacheFile)) {
+            $treesCache = @file_get_contents($treesCacheFile);
+            if (empty($treesCache)) {
+                $this->buildTrees();
+            } else {
+                $treesCache = unserialize($treesCache);
+                if (empty($treesCache)) {
+                    $this->buildTrees();
+                } else {
+                    $this->trees = $treesCache;
+                }
+            }
+        } else {
+            $this->buildTrees();
+        }
 
+        $workerIndex = $this->getConfig()->getWorkerIndex();
+        if ($workerIndex === 1)
+        {
+            $this->addTick(30000, function () use ($treesCacheFile){
+                if (!empty($this->trees))
+                {
+                    $trees = serialize($this->trees);
+                    $res = @file_put_contents($treesCacheFile, $trees);
+                    if (empty($res))
+                    {
+                        throw new RuntimeError('Data landing failure！');
+                    }
+                }
+            });
+        }
         parent::run($this->getConfig());
     }
 
@@ -121,7 +157,8 @@ class WordsMatchProcess extends AbstractUnixProcess
      * 生成字典树
      *
      * @param $file
-     * @return bool
+     * @return Dfa
+     * @throws RuntimeError
      */
     private function generateTree($file)
     {
