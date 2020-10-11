@@ -19,7 +19,7 @@ abstract class WordsMatchAbstract
 
     public function generateSocketByIndex($index)
     {
-        $serverName =  WordsMatchConfig::getInstance()->getServerName() . ".Process.{$index}.sock";
+        $serverName =  WordsMatchConfig::getInstance()->getServerName() . ".Tasker.{$index}.sock";
         return  WordsMatchConfig::getInstance()->getTempDir() . "/{$serverName}";
     }
 }

@@ -7,20 +7,21 @@
  */
 namespace EasySwoole\WordsMatch;
 
-use EasySwoole\WordsMatch\Exception\RuntimeError;
+use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use Swoole\Coroutine\Socket;
 use EasySwoole\WordsMatch\Base\Dfa;
+use EasySwoole\Spl\SplFileStream;
+use EasySwoole\WordsMatch\Exception\RuntimeError;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
-use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Extend\Protocol\Protocol;
 use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
+
 class WordsMatchProcess extends AbstractUnixProcess
 {
 
-    private $trees=[];
+    private $uuid;
 
-    /** @var $config WordsMatchConfig */
-    private $wordsMatchConfig;
+    private $trees=[];
 
     /**
      * 启动时执行
@@ -31,72 +32,25 @@ class WordsMatchProcess extends AbstractUnixProcess
      */
     public function run($arg)
     {
-        $this->wordsMatchConfig = WordsMatchConfig::getInstance();
         ini_set('memory_limit',$this->getConfig()->getMaxMem().'M');
-
-        $treesCacheFile = EASYSWOOLE_ROOT.'/Temp/words-match-trees';
-        if (file_exists($treesCacheFile)) {
-            $treesCache = @file_get_contents($treesCacheFile);
-            if (empty($treesCache)) {
-                $this->buildTrees();
-            } else {
-                $treesCache = unserialize($treesCache);
-                if (empty($treesCache)) {
-                    $this->buildTrees();
-                } else {
-                    $this->trees = $treesCache;
-                }
-            }
-        } else {
-            $this->buildTrees();
-        }
-
-        $workerIndex = $this->getConfig()->getWorkerIndex();
-        if ($workerIndex === 1)
-        {
-            $this->addTick(30000, function () use ($treesCacheFile){
-                if (!empty($this->trees))
-                {
-                    $trees = serialize($this->trees);
-                    $res = @file_put_contents($treesCacheFile, $trees);
-                    if (empty($res))
-                    {
-                        throw new RuntimeError('Data landing failure！');
-                    }
-                }
-            });
-        }
-        parent::run($this->getConfig());
-    }
-
-    /**
-     * 构建多词库
-     *
-     * @throws RuntimeError
-     */
-    private function buildTrees()
-    {
-        $wordBank = $this->wordsMatchConfig->getWordBank();
-        if (is_array($wordBank))
-        {
-            foreach ($this->wordsMatchConfig->getWordBank() as $key => $item)
+        $this->addTick(3000, function () {
+            $file = EASYSWOOLE_ROOT.'/Temp/words-match-serialize';
+            $splFileStream = new SplFileStream($file, 'a+');
+            $splFileStream->lock(LOCK_EX);
+            $uuid = $splFileStream->read(10);
+            if (!is_numeric($uuid))
             {
-                if (file_exists($item)) {
-                    $this->trees[$key] = $this->generateTree($item);
-                } else {
-                    throw new RuntimeError('Please set up word bank correctly！');
-                }
-
+                $splFileStream->unlock(LOCK_UN);
+                return;
             }
-        } else if (is_string($wordBank)) {
-            if (file_exists($wordBank)) {
-                $this->trees['default'] = $this->generateTree($wordBank);
-            } else {
-                throw new RuntimeError('Please set up word bank correctly！');
+            if ($this->uuid !== $uuid)
+            {
+                $trees = $splFileStream->getContents();
+                $this->trees = unserialize($trees);
             }
-        } else {
-            throw new RuntimeError("WordBank's configuration error!");
-        }
+            $splFileStream->unlock(LOCK_UN);
+        });
+        parent::run($this->getConfig());
     }
 
     public function onAccept(Socket $socket)
@@ -123,62 +77,33 @@ class WordsMatchProcess extends AbstractUnixProcess
         /** @var $fromPackage Package*/
         $replayData = null;
         $fromPackage = unserialize($commandPayload);
-        $wordBankName = $fromPackage->getWordBankName();
-        if (!isset($this->trees[$wordBankName]))
-        {
-            return $replayData;
-        }
-        /** @var $tree Dfa*/
-        $tree = $this->trees[$wordBankName];
         switch ($fromPackage->getCommand()) {
             case $fromPackage::ACTION_SEARCH:
                 {
+                    $replayData = [];
                     $content = $fromPackage->getContent();
-                    $replayData = $tree->search($content);
+                    $wordBanks = $fromPackage->getWordBanks();
+                    if (empty($wordBanks))
+                    {
+                        $wordBanks = array_keys(WordsMatchConfig::getInstance()->getWordBanks());
+                    }
+                    if (empty($this->trees))
+                    {
+                        break;
+                    }
+                    foreach ($wordBanks as $wordBank)
+                    {
+                        $tree = $this->trees[$wordBank];
+                        $result = $tree->search($content);
+                        foreach ($result as $key => $item)
+                        {
+                            $replayData[$key] = $item;
+                        }
+                    }
                 }
                 break;
-            case $fromPackage::ACTION_REMOVE:
-                {
-                    $word = $fromPackage->getWord();
-                    $tree->remove($word);
-                }
-                break;
-            case $fromPackage::ACTION_APPEND:
-                {
-                    $word = $fromPackage->getWord();
-                    $otherInfo = $fromPackage->getOtherInfo();
-                    $tree->append($word, $otherInfo);
-                }
         }
         return $replayData;
-    }
-
-    /**
-     * 生成字典树
-     *
-     * @param $file
-     * @return Dfa
-     * @throws RuntimeError
-     */
-    private function generateTree($file)
-    {
-        $file = fopen($file, 'ab+');
-        if ($file === false) {
-            throw new RuntimeError("fopen $file fail!");
-        }
-        $tree = new Dfa();
-        $separator = $this->wordsMatchConfig->getSeparator();
-        while (!feof($file)) {
-            $line = trim(fgets($file));
-            if (empty($line)) {
-                continue;
-            }
-            $lineArr = explode($separator, $line);
-            $word = array_shift($lineArr);
-            $tree->append($word, $lineArr);
-        }
-
-        return $tree;
     }
 
 }

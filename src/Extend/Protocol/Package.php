@@ -14,7 +14,7 @@ class Package
     protected $otherInfo=[];
     protected $separator;
     protected $content;
-    protected $wordBankName='default';
+    protected $wordBanks=[];
 
     public const ACTION_SEARCH = 11;
     public const ACTION_APPEND = 12;
@@ -60,14 +60,14 @@ class Package
         return $this->otherInfo;
     }
 
-    public function setWordBankName(string $wordBankName)
+    public function setWordBanks(array $wordBanks)
     {
-        $this->wordBankName = $wordBankName;
+        $this->wordBanks = $wordBanks;
     }
 
-    public function getWordBankName()
+    public function getWordBanks()
     {
-        return $this->wordBankName;
+        return $this->wordBanks;
     }
 
 }
