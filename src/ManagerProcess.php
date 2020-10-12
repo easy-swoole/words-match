@@ -8,9 +8,9 @@
 namespace EasySwoole\WordsMatch;
 
 use EasySwoole\Component\WaitGroup;
-use EasySwoole\EasySwoole\Logger;
 use EasySwoole\EasySwoole\Trigger;
 use EasySwoole\Trigger\Location;
+use EasySwoole\WordsMatch\Config\Config;
 use Swoole\Coroutine\Socket;
 use EasySwoole\Spl\SplFileStream;
 use EasySwoole\WordsMatch\Base\Dfa;
@@ -28,6 +28,7 @@ class ManagerProcess extends AbstractUnixProcess {
 
     public function __construct(UnixProcessConfig $config)
     {
+        ini_set('memory_limit','4048M');
         $this->actionQueue = new \SplQueue();
         parent::__construct($config);
     }
@@ -49,7 +50,7 @@ class ManagerProcess extends AbstractUnixProcess {
         });
 
         // 监听对词库的操作
-        $this->addTick(3000, function () {
+        $this->addTick(1000, function () {
             $queueCount = $this->actionQueue->count();
             if ($queueCount === 0)
             {
@@ -154,8 +155,7 @@ class ManagerProcess extends AbstractUnixProcess {
         $wait->wait();
 
         $treesSerialize = serialize($trees);
-        $file = EASYSWOOLE_ROOT.'/Temp/words-match-serialize';
-        $splFileStream = new SplFileStream($file, 'w');
+        $splFileStream = new SplFileStream(Config::WORDSMATCH_SERIALIZE, 'w');
         $splFileStream->lock(LOCK_EX);
         $splFileStream->write(time().$treesSerialize);
         $splFileStream->unlock(LOCK_UN);

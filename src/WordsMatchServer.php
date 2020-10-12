@@ -9,6 +9,7 @@ namespace EasySwoole\WordsMatch;
 
 use swoole_server;
 use EasySwoole\Component\Singleton;
+use EasySwoole\WordsMatch\Config\Config;
 use EasySwoole\WordsMatch\Base\WordsMatchAbstract;
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Config\WordsMatchProcessConfig;
@@ -54,7 +55,7 @@ class WordsMatchServer extends WordsMatchAbstract
         $processConfig= new UnixProcessConfig();
         $processConfig->setProcessGroup('words-match');
         $processConfig->setProcessName('words-match-manager');
-        $processConfig->setSocketFile(WordsMatchConfig::getInstance()->getTempDir().'words-match.manager.sock');
+        $processConfig->setSocketFile(Config::MANAGER_PROCESS_SOCK);
         $array[] = new ManagerProcess($processConfig);
         return $array;
     }
