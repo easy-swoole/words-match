@@ -7,7 +7,6 @@
  */
 namespace EasySwoole\WordsMatch;
 
-use EasySwoole\Component\Di;
 use EasySwoole\Component\Singleton;
 use EasySwoole\WordsMatch\Base\WordsMatchAbstract;
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
