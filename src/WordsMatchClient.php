@@ -13,18 +13,17 @@ use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
 use EasySwoole\WordsMatch\Extend\Protocol\Protocol;
 use EasySwoole\WordsMatch\Extend\Protocol\UnixClient;
-use http\Exception\BadQueryStringException;
 
 class WordsMatchClient extends WordsMatchAbstract
 {
 
     use Singleton;
 
-    protected $wordBankName='default';
+    protected $wordBanks=[];
 
-    public function setWordBankName(string $wordBankName)
+    public function setWordBanks(array $wordBanks)
     {
-        $this->wordBankName = $wordBankName;
+        $this->wordBanks = $wordBanks;
         return $this;
     }
 
@@ -40,8 +39,9 @@ class WordsMatchClient extends WordsMatchAbstract
         $pack = new Package();
         $pack->setCommand($pack::ACTION_SEARCH);
         $pack->setContent($content);
-        $pack->setWordBankName($this->wordBankName);
+        $pack->setWordBanks($this->wordBanks);
         $res = $this->sendAndRecv($this->generateSocket(), $pack, $timeout);
+        $this->gc();
         if (empty($res)) {
             return [];
         }
@@ -53,16 +53,20 @@ class WordsMatchClient extends WordsMatchAbstract
      *
      * @param string $word
      * @param float $timeout
+     * @return false | void
      */
     public function remove(string $word, float $timeout = 3.0)
     {
+        if (empty($this->wordBanks))
+        {
+            return false;
+        }
         $pack = new Package();
         $pack->setCommand($pack::ACTION_REMOVE);
         $pack->setWord($word);
-        $pack->setWordBankName($this->wordBankName);
-        for ($i=1;$i<=WordsMatchConfig::getInstance()->getProcessNum();$i++){
-            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
-        }
+        $pack->setWordBanks($this->wordBanks);
+        $this->sendAndRecv(WordsMatchConfig::getInstance()->getTempDir().'words-match.manager.sock', $pack, $timeout);
+        $this->gc();
     }
 
     /**
@@ -71,17 +75,26 @@ class WordsMatchClient extends WordsMatchAbstract
      * @param string $word
      * @param array $otherInfo
      * @param float $timeout
+     * @return false | void
      */
     public function append(string $word, array $otherInfo=[], float $timeout = 3.0)
     {
+        if (empty($this->wordBanks))
+        {
+            return false;
+        }
         $pack = new Package();
         $pack->setCommand($pack::ACTION_APPEND);
         $pack->setWord($word);
         $pack->setOtherInfo($otherInfo);
-        $pack->setWordBankName($this->wordBankName);
-        for ($i=1;$i<=WordsMatchConfig::getInstance()->getProcessNum();$i++){
-            $this->sendAndRecv($this->generateSocketByIndex($i), $pack, $timeout);
-        }
+        $pack->setWordBanks($this->wordBanks);
+        $this->sendAndRecv(WordsMatchConfig::getInstance()->getTempDir().'words-match.manager.sock', $pack, $timeout);
+        $this->gc();
+    }
+
+    private function gc()
+    {
+        $this->wordBanks = [];
     }
 
     private function sendAndRecv($socketFile, Package $package, $timeout)

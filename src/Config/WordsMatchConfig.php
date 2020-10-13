@@ -23,7 +23,7 @@ class WordsMatchConfig extends SplBean
 
     protected $backlog = 256;
 
-    protected $wordBank = 'default';
+    protected $wordBanks=[];
 
     protected $maxMem = 512;
 
@@ -49,9 +49,9 @@ class WordsMatchConfig extends SplBean
         return $this->backlog;
     }
 
-    public function getWordBank()
+    public function getWordBanks()
     {
-        return $this->wordBank;
+        return $this->wordBanks;
     }
 
     public function getMaxMem()
