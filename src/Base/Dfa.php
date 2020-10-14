@@ -87,7 +87,7 @@ class Dfa
         }
 
         unset($tree, $wordChars);
-        return $hitArr;
+        return array_values($hitArr);
     }
 
     public function getRoot()

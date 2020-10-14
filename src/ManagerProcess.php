@@ -136,6 +136,7 @@ class ManagerProcess extends AbstractUnixProcess {
 
     private function buildTrees()
     {
+        $groups = [];
         $trees = [];
         $wordBanks = WordsMatchConfig::getInstance()->getWordBanks();
         $wait = new WaitGroup();
@@ -143,9 +144,11 @@ class ManagerProcess extends AbstractUnixProcess {
         {
             if (file_exists($wordBank)) {
                 $wait->add();
-                go(function () use ($wait, $key, $wordBank, &$trees) {
+                go(function () use ($wait, $key, $wordBank, &$trees, &$groups) {
                     $this->wordBanksMd5[$key] = md5_file($wordBank);
-                    $trees[$key] = $this->buildTree($wordBank);
+                    [$tree, $group] = $this->buildTree($wordBank);
+                    $trees[$key] = $tree;
+                    $groups[$key] = $group;
                     $wait->done();
                 });
             } else {
@@ -154,12 +157,20 @@ class ManagerProcess extends AbstractUnixProcess {
         }
         $wait->wait();
 
+        $groupsSerialize = json_encode($groups, JSON_UNESCAPED_UNICODE);
+        $splFileStream = new SplFileStream(Config::GROUPS_SERIALIZE, 'w');
+        $splFileStream->lock(LOCK_EX);
+        $splFileStream->write($groupsSerialize);
+        $splFileStream->unlock(LOCK_UN);
+        $splFileStream->close();
+
         $treesSerialize = serialize($trees);
         $splFileStream = new SplFileStream(Config::WORDSMATCH_SERIALIZE, 'w');
         $splFileStream->lock(LOCK_EX);
         $splFileStream->write(time().$treesSerialize);
         $splFileStream->unlock(LOCK_UN);
         $splFileStream->close();
+
     }
 
     private function buildTree($file)
@@ -168,18 +179,51 @@ class ManagerProcess extends AbstractUnixProcess {
         $splFileStream->lock(LOCK_EX);
         $tree = new Dfa();
         $separator = WordsMatchConfig::getInstance()->getSeparator();
+        $normalWords = [];
+        $compoundWords = [];
+        $group = [];
         while (!$splFileStream->eof()) {
             $line = trim(fgets($splFileStream->getStreamResource()));
             if (empty($line)) {
                 continue;
             }
             $lineArr = explode($separator, $line);
-            $word = array_shift($lineArr);
-            $tree->append($word, $lineArr);
+            $first = array_shift($lineArr);
+            $words = explode(Config::COMPOUND_WORD_SEPARATOR, $first);
+            $isCompoundWord = count($words) > 1;
+            foreach ($words as $word)
+            {
+                $other = [];
+                if ($isCompoundWord)
+                {
+                    $group[$word][] = [
+                        $first,
+                        implode(',', $lineArr)
+                    ];
+                    $compoundWords[] = $word;
+                    if (array_key_exists($word, $normalWords))
+                    {
+                        $other = $normalWords[$word];
+                        $other['type'] = Config::WORD_TYPE_NORMAL_AND_COMPOUND;
+                    } else {
+                        $other['type'] = Config::WORD_TYPE_COMPOUND;
+                    }
+                } else {
+                    $normalWords[] = $word;
+                    if (in_array($word, $compoundWords, false))
+                    {
+                        $other = $lineArr;
+                        $other['type'] = Config::WORD_TYPE_NORMAL_AND_COMPOUND;
+                    } else {
+                        $other['type'] = Config::WORD_TYPE_NORMAL;
+                    }
+                }
+                $tree->append($word, $other);
+            }
         }
         $splFileStream->unlock(LOCK_UN);
         $splFileStream->close();
-        return $tree;
+        return [$tree, $group];
     }
 
     public function onAccept(Socket $socket)

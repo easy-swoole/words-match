@@ -10,7 +10,6 @@ namespace EasySwoole\WordsMatch;
 use EasySwoole\WordsMatch\Config\Config;
 use Swoole\Coroutine\Socket;
 use EasySwoole\Spl\SplFileStream;
-use EasySwoole\WordsMatch\Base\Dfa;
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Exception\RuntimeError;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
@@ -22,7 +21,10 @@ class WordsMatchProcess extends AbstractUnixProcess
 
     private $uuid;
 
-    private $trees=[];
+    private $cache = [
+        'trees' => [],
+        'groups' => []
+    ];
 
     /**
      * 启动时执行
@@ -50,7 +52,13 @@ class WordsMatchProcess extends AbstractUnixProcess
             if ($this->uuid !== $uuid)
             {
                 $trees = $splFileStream->getContents();
-                $this->trees = unserialize($trees);
+                $cache['trees'] = unserialize($trees);
+                $groupFileStream = new SplFileStream(Config::GROUPS_SERIALIZE, 'a+');
+                $groupFileStream->lock(LOCK_EX);
+                $groups = $groupFileStream->getContents();
+                $cache['groups'] = json_decode($groups, true);
+                $splFileStream->unlock(LOCK_UN);
+                $this->cache = $cache;
             }
             $splFileStream->unlock(LOCK_UN);
         });
@@ -79,7 +87,7 @@ class WordsMatchProcess extends AbstractUnixProcess
     protected function executeCommand(?string $commandPayload)
     {
         /** @var $fromPackage Package*/
-        $replayData = null;
+        $replayData = [];
         $fromPackage = unserialize($commandPayload);
         switch ($fromPackage->getCommand()) {
             case $fromPackage::ACTION_SEARCH:
@@ -91,17 +99,70 @@ class WordsMatchProcess extends AbstractUnixProcess
                     {
                         $wordBanks = array_keys(WordsMatchConfig::getInstance()->getWordBanks());
                     }
-                    if (empty($this->trees))
+                    if (empty($this->cache['trees']))
                     {
                         break;
                     }
-                    foreach ($wordBanks as $wordBank)
-                    {
-                        $tree = $this->trees[$wordBank];
-                        $result = $tree->search($content);
-                        foreach ($result as $key => $item)
-                        {
-                            $replayData[$key] = $item;
+                    foreach ($wordBanks as $wordBank) {
+
+                        if (!isset($this->cache['trees'][$wordBank])) {
+                            continue;
+                        }
+
+                        $result = $this->cache['trees'][$wordBank]->search($content);
+
+                        $groups = [];
+                        foreach ($result as $key => $item) {
+                            $word = $item['word'];
+                            $type = $item['other']['type'];
+                            if (in_array($type, [Config::WORD_TYPE_COMPOUND, Config::WORD_TYPE_NORMAL_AND_COMPOUND]) && isset($this->cache['groups'][$wordBank][$word])) {
+                                $compoundWords = $this->cache['groups'][$wordBank][$word];
+                                foreach ($compoundWords as $compoundWord)
+                                {
+                                    $compoundWordArr = explode(Config::COMPOUND_WORD_SEPARATOR, $compoundWord[0]);
+                                    $groups[md5(sort($compoundWordArr, SORT_STRING))] = [
+                                        'compound_word' => $compoundWord[0],
+                                        'compound_word_arr' => $compoundWordArr,
+                                        'other' => explode(WordsMatchConfig::getInstance()->getSeparator(), $compoundWord[1]),
+                                        'total' => count($compoundWordArr),
+                                        'current' => 0,
+                                        'location' => []
+                                    ];
+                                }
+                            }
+                        }
+
+                        foreach ($result as $key => $item) {
+                            $word = $item['word'];
+                            $type = $item['other']['type'];
+                            unset($item['other']['type']);
+                            if ($type === Config::WORD_TYPE_NORMAL) {
+                                $item['type'] = Config::WORD_TYPE_NORMAL;
+                                $replayData[$key] = $item;
+                                continue;
+                            }
+
+                            if ($type === Config::WORD_TYPE_NORMAL_AND_COMPOUND) {
+                                $item['type'] = Config::WORD_TYPE_NORMAL;
+                                $replayData[$key] = $item;
+                            }
+
+                            if (in_array($type, [Config::WORD_TYPE_COMPOUND, Config::WORD_TYPE_NORMAL_AND_COMPOUND])) {
+                                foreach ($groups as &$compound) {
+                                    if (in_array($word, $compound['compound_word_arr'], false)) {
+                                        $compound['current'] += 1;
+                                        $compound['location'][] = $item['location'];
+                                        if ($compound['total'] === $compound['current']) {
+                                            $replayData[] = [
+                                                'word' => $compound['compound_word'],
+                                                'other' => $compound['other'],
+                                                'location' => array_merge(...$compound['location']),
+                                                'type' => Config::WORD_TYPE_COMPOUND
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

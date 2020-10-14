@@ -10,8 +10,17 @@ namespace EasySwoole\WordsMatch\Config;
 class Config
 {
 
+    public const COMPOUND_WORD_SEPARATOR = '※';
+
     public const MANAGER_PROCESS_SOCK = EASYSWOOLE_ROOT . '/Temp/words-match.manager.sock';
 
     public const WORDSMATCH_SERIALIZE = EASYSWOOLE_ROOT.'/Temp/words-match-serialize';
 
+    public const GROUPS_SERIALIZE = EASYSWOOLE_ROOT.'/Temp/words-match-groups-serialize';
+
+    public const WORD_TYPE_NORMAL = 1;
+
+    public const WORD_TYPE_COMPOUND = 2;
+
+    public const WORD_TYPE_NORMAL_AND_COMPOUND = 3;
 }
