@@ -7,8 +7,8 @@
  */
 namespace EasySwoole\WordsMatch\Test;
 
-use EasySwoole\Spl\SplFileStream;
-use EasySwoole\WordsMatch\Config\Config;
+defined('EASYSWOOLE_ROOT') or define('EASYSWOOLE_ROOT', realpath(getcwd()));
+
 use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
 use EasySwoole\WordsMatch\Library;
