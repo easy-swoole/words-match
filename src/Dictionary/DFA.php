@@ -1,18 +1,14 @@
 <?php
-/**
- * @CreateTime:   2019-10-14 22:43
- * @Author:       huizhang AbelZhou<2788828128@qq.com>
- * @Copyright:    copyright(2019) Easyswoole all rights reserved
- * @Description:  关键词字典树
- */
-namespace EasySwoole\WordsMatch\Base;
 
-use EasySwoole\WordsMatch\Extend\CodeTrans;
 
-class Dfa
+namespace EasySwoole\WordsMatch\Dictionary;
+
+
+
+
+class DFA
 {
-
-    protected $nodeTree = [];
+    private $nodeTree = [];
 
     public function append(string $word, array $otherInfo) :void
     {
@@ -24,7 +20,7 @@ class Dfa
             $char = NULL;
             $isEnd = false;
             $asciiCode = ord($word[$i]);
-            $asciiByteNum = CodeTrans::getInstance()->judgeAsciiByteNum($asciiCode);
+            $asciiByteNum = CodeTrans::judgeAsciiByteNum($asciiCode);
             if ($i < $len-($asciiByteNum-1)) {
                 for ($cursor=0;$cursor<$asciiByteNum; $cursor++) {
                     $code .= dechex(ord($word[$i+$cursor]));
@@ -47,7 +43,7 @@ class Dfa
         if (empty($search)) {
             return [];
         }
-        $wordChars = CodeTrans::getInstance()->strToChars($word);
+        $wordChars = CodeTrans::strToChars($word);
         $hitArr = array();
         $tree = &$this->nodeTree;
         $arrLen = count($wordChars);
@@ -57,7 +53,7 @@ class Dfa
                 $node = $tree[$wordChars[$i]];
                 if ($node['end']) {
                     $key = md5($node['word']);
-                    $start = $i-mb_strlen($node['word'])+1;
+                    $start = $i - mb_strlen($node['word'])+1;
                     if (isset($hitArr[$key])) {
                         $hitArr[$key]['count'] ++;
                         $hitArr[$key]['location'][] = $start;
@@ -170,5 +166,4 @@ class Dfa
     {
         return $this->nodeTree;
     }
-
 }
