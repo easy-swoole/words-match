@@ -7,11 +7,7 @@
  */
 namespace EasySwoole\WordsMatch;
 
-use EasySwoole\WordsMatch\Config\Config;
 use Swoole\Coroutine\Socket;
-use EasySwoole\Spl\SplFileStream;
-use EasySwoole\WordsMatch\Base\Dfa;
-use EasySwoole\WordsMatch\Config\WordsMatchConfig;
 use EasySwoole\WordsMatch\Exception\RuntimeError;
 use EasySwoole\WordsMatch\Extend\Protocol\Package;
 use EasySwoole\WordsMatch\Extend\Protocol\Protocol;
@@ -20,9 +16,10 @@ use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
 class WordsMatchProcess extends AbstractUnixProcess
 {
 
-    private $uuid;
-
-    private $trees=[];
+    private $cache = [
+        'trees' => [],
+        'groups' => []
+    ];
 
     /**
      * 启动时执行
@@ -35,24 +32,12 @@ class WordsMatchProcess extends AbstractUnixProcess
     {
         ini_set('memory_limit',$this->getConfig()->getMaxMem().'M');
         $this->addTick(3000, function () {
-            if (!file_exists(Config::WORDSMATCH_SERIALIZE))
+            $cache = Library::getInstance()->unserializeCache();
+            if (empty($cache))
             {
                 return;
             }
-            $splFileStream = new SplFileStream(Config::WORDSMATCH_SERIALIZE, 'a+');
-            $splFileStream->lock(LOCK_EX);
-            $uuid = $splFileStream->read(10);
-            if (!is_numeric($uuid))
-            {
-                $splFileStream->unlock(LOCK_UN);
-                return;
-            }
-            if ($this->uuid !== $uuid)
-            {
-                $trees = $splFileStream->getContents();
-                $this->trees = unserialize($trees);
-            }
-            $splFileStream->unlock(LOCK_UN);
+            $this->cache = $cache;
         });
         parent::run($this->getConfig());
     }
@@ -79,31 +64,16 @@ class WordsMatchProcess extends AbstractUnixProcess
     protected function executeCommand(?string $commandPayload)
     {
         /** @var $fromPackage Package*/
-        $replayData = null;
+        $replayData = [];
         $fromPackage = unserialize($commandPayload);
         switch ($fromPackage->getCommand()) {
             case $fromPackage::ACTION_SEARCH:
                 {
-                    $replayData = [];
-                    $content = $fromPackage->getContent();
-                    $wordBanks = $fromPackage->getWordBanks();
-                    if (empty($wordBanks))
-                    {
-                        $wordBanks = array_keys(WordsMatchConfig::getInstance()->getWordBanks());
-                    }
-                    if (empty($this->trees))
+                    if (empty($this->cache['trees']))
                     {
                         break;
                     }
-                    foreach ($wordBanks as $wordBank)
-                    {
-                        $tree = $this->trees[$wordBank];
-                        $result = $tree->search($content);
-                        foreach ($result as $key => $item)
-                        {
-                            $replayData[$key] = $item;
-                        }
-                    }
+                    $replayData = Library::getInstance()->detect($fromPackage, $this->cache);
                 }
                 break;
         }
