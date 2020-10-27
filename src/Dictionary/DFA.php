@@ -1,10 +1,6 @@
 <?php
 
-
 namespace EasySwoole\WordsMatch\Dictionary;
-
-
-
 
 class DFA
 {
@@ -94,7 +90,7 @@ class DFA
     public function remove($word, $delTree = false): bool
     {
         $word = trim($word);
-        $wordChars = CodeTrans::getInstance()->strToChars($word);
+        $wordChars = CodeTrans::strToChars($word);
         $wordLen = count($wordChars);
         $childTree = &$this->nodeTree;
         $delIndex = array();
