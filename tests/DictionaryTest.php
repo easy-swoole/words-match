@@ -27,7 +27,7 @@ class DictionaryTest extends TestCase
                 'type' => 1
             ]
         ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode($res, JSON_UNESCAPED_UNICODE));
+        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
     }
 
     public function testDetectCompound()
@@ -43,7 +43,7 @@ class DictionaryTest extends TestCase
                 'type' => 2
             ],
         ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode($res, JSON_UNESCAPED_UNICODE));
+        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
     }
 
     public function testDetectNormalAndCompound()
@@ -66,7 +66,7 @@ class DictionaryTest extends TestCase
                 'type' => 2
             ],
         ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode($res, JSON_UNESCAPED_UNICODE));
+        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
     }
 
     public function testAppend()
@@ -83,7 +83,7 @@ class DictionaryTest extends TestCase
                 'type' => 1
             ]
         ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode($res, JSON_UNESCAPED_UNICODE));
+        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
     }
 
     public function testRemove()
@@ -92,7 +92,7 @@ class DictionaryTest extends TestCase
         $dictionary->remove('ES');
         $res = $dictionary->detect('测试ES');
         $expected = json_encode([]);
-        $this->assertEquals($expected, json_encode($res, JSON_UNESCAPED_UNICODE));
+        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
     }
 
 
