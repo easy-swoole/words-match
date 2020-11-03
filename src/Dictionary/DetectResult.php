@@ -4,11 +4,13 @@
 namespace EasySwoole\WordsMatch\Dictionary;
 
 
-class DetectResult
+use EasySwoole\Spl\SplBean;
+
+class DetectResult extends SplBean
 {
-    private $word;
-    private $other;
-    private $count = 0;
-    private $location = [];
-    private $type;
+    public $word;
+    public $other;
+    public $count = 0;
+    public $location = [];
+    public $type;
 }

@@ -36,18 +36,15 @@ class Dictionary
             $first = array_shift($items);
             $words = explode(self::COMPOUND_SEPARATOR, $first);
             $isCompoundWord = count($words) > 1;
-            foreach ($words as $word)
-            {
+            foreach ($words as $word) {
                 $other = [];
-                if ($isCompoundWord)
-                {
+                if ($isCompoundWord) {
                     $group[$word][] = [
                         $first,
                         implode(self::SEPARATOR, $items)
                     ];
                     $compoundWords[] = $word;
-                    if (array_key_exists($word, $normalWords))
-                    {
+                    if (array_key_exists($word, $normalWords)) {
                         $other = $normalWords[$word];
                         $other['type'] = self::WORD_TYPE_NORMAL_AND_COMPOUND;
                     } else {
@@ -56,8 +53,7 @@ class Dictionary
                 } else {
                     $normalWords[$word] = $items;
                     $other = $items;
-                    if (in_array($word, $compoundWords, false))
-                    {
+                    if (in_array($word, $compoundWords, false)) {
                         $other['type'] = self::WORD_TYPE_NORMAL_AND_COMPOUND;
                     } else {
                         $other['type'] = self::WORD_TYPE_NORMAL;
@@ -75,18 +71,16 @@ class Dictionary
     {
         $splFileStream = new SplFileStream($this->file, 'r');
         $content = '';
-        while (!$splFileStream->eof())
-        {
+        while (!$splFileStream->eof()) {
             $line = trim(fgets($splFileStream->getStreamResource()));
             if (empty($line)) {
                 continue;
             }
             $items = explode(self::SEPARATOR, $line);
-            if (array_shift($items) === $word)
-            {
+            if (array_shift($items) === $word) {
                 continue;
             }
-            $content .= $line.PHP_EOL;
+            $content .= $line . PHP_EOL;
         }
         $splFileStream->close();
         $splFileStream = new SplFileStream($this->file, 'w');
@@ -96,12 +90,11 @@ class Dictionary
         $this->load($this->file);
     }
 
-    public function append(string $word, array $other=[])
+    public function append(string $word, array $other = [])
     {
         $splFileStream = new SplFileStream($this->file, 'a+');
         $item = $word;
-        if (!empty($other))
-        {
+        if (!empty($other)) {
             $item .= self::SEPARATOR . implode(self::SEPARATOR, $other);
         }
         $item .= PHP_EOL;
@@ -117,18 +110,30 @@ class Dictionary
 
         $compoundWordsInfo = $this->getCompoundWordsInfo($detectResult);
 
-        return $this->formatHitResult($detectResult, $compoundWordsInfo);
+        $hitResult = $this->hitResult($detectResult, $compoundWordsInfo);
+
+        return $this->formatHitResult($hitResult);
+    }
+
+    private function formatHitResult(array $hitResult) : array
+    {
+        $result = [];
+        foreach ($hitResult as $item)
+        {
+            $result[] = new DetectResult($item);
+        }
+        return $result;
     }
 
     /**
-     * 格式化命中结果
+     * 计算命中结果
      *
      * @param array $detectResult
      * @param array $compoundWordsInfo
      * @return array
      * CreateTime: 2020/10/27 12:22 上午
      */
-    private function formatHitResult(array $detectResult, array $compoundWordsInfo)
+    private function hitResult(array $detectResult, array $compoundWordsInfo)
     {
         $result = [];
         foreach ($detectResult as $key => $item) {
