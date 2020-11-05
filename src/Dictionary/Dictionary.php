@@ -200,7 +200,8 @@ class Dictionary
                     {
                         $other = [];
                     }
-                    $result[md5(sort($compoundWordArr, SORT_STRING))] = [
+                    sort($compoundWordArr, SORT_STRING);
+                    $result[md5(implode('', $compoundWordArr))] = [
                         'compound_word' => $compoundWord[0], // 组合词: es※easyswoole
                         'compound_word_arr' => $compoundWordArr, // 组合词数组: [es,easyswoole]
                         'other' => $other, // 组合词其它信息
