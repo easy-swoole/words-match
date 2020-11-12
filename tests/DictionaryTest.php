@@ -7,6 +7,7 @@
  */
 namespace EasySwoole\WordsMatch\Tests;
 
+use EasySwoole\WordsMatch\Dictionary\DetectResult;
 use EasySwoole\WordsMatch\Dictionary\Dictionary;
 use PHPUnit\Framework\TestCase;
 
@@ -24,23 +25,23 @@ class DictionaryTest extends TestCase
     {
         $dictionary = $this->getDictionary();
         $res = $dictionary->detect('⑩⑧包夜🔞微信+');
-        $expected = json_encode([
-            [
-                'word' => '包夜',
-                'other' => [],
-                'count' => 1,
-                'location' => [2],
-                'type' => 1
-            ],
-            [
-                'word' => '微信',
-                'other' => [],
-                'count' => 1,
-                'location' => [5],
-                'type' => 1
-            ],
-        ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
+        $this->assertEquals($this->createDetectResult([
+            'word' => '包夜',
+            'other' => [],
+            'count' => 1,
+            'location' => [2],
+            'type' => 1
+        ]),$res[0]);
+
+        $this->assertEquals($this->createDetectResult([
+            'word' => '微信',
+            'other' => [],
+            'count' => 1,
+            'location' => [5],
+            'type' => 1
+        ]),$res[1]);
+
+        $this->assertCount(2,$res);
     }
 
     /**
@@ -232,6 +233,11 @@ class DictionaryTest extends TestCase
         $dictionary = new Dictionary();
         $dictionary->load($this->dictionary);
         return $dictionary;
+    }
+
+    private function createDetectResult(array $arr):DetectResult
+    {
+        return new DetectResult($arr);
     }
 
 }
