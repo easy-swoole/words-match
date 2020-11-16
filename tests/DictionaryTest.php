@@ -53,16 +53,18 @@ class DictionaryTest extends TestCase
     {
         $dictionary = $this->getDictionary();
         $res = $dictionary->detect('⑩⑧包夜🔞微--信+包夜');
-        $expected = json_encode([
-            [
-                'word' => '包夜',
-                'other' => [],
-                'count' => 2,
-                'location' => [2, 10],
-                'type' => 1
-            ],
-        ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '包夜',
+                    'other' => [],
+                    'count' => 2,
+                    'location' => [2, 10],
+                    'type' => 1
+                ]
+            )
+            , $res[0]
+        );
     }
 
     /**
@@ -74,16 +76,18 @@ class DictionaryTest extends TestCase
     {
         $dictionary = $this->getDictionary();
         $res = $dictionary->detect('⑩⑧6位qq🔞微--信+');
-        $expected = json_encode([
-            [
-                'word' => '6位qq',
-                'other' => ['卖qq的'],
-                'count' => 1,
-                'location' => [2],
-                'type' => 1
-            ],
-        ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '6位qq',
+                    'other' => ['卖qq的'],
+                    'count' => 1,
+                    'location' => [2],
+                    'type' => 1
+                ]
+            )
+            , $res[0]
+        );
     }
 
     /**
@@ -95,16 +99,18 @@ class DictionaryTest extends TestCase
     {
         $dictionary = $this->getDictionary();
         $res = $dictionary->detect('计算机①级考试🐂替考+++++++++++++我');
-        $expected = json_encode([
-            [
-                'word' => '考试※替考',
-                'other' => [],
-                'count' => 1,
-                'location' => [5,8],
-                'type' => 2
-            ],
-        ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '考试※替考',
+                    'other' => [],
+                    'count' => 1,
+                    'location' => [5,8],
+                    'type' => 2
+                ],
+            )
+            , $res[0]
+        );
     }
 
     /**
@@ -116,16 +122,18 @@ class DictionaryTest extends TestCase
     {
         $dictionary = $this->getDictionary();
         $res = $dictionary->detect('计算机①级考试🐂替考+++替考+++++替考+++++我');
-        $expected = json_encode([
-            [
-                'word' => '考试※替考',
-                'other' => [],
-                'count' => 1,
-                'location' => [5,8,13,20],
-                'type' => 2
-            ],
-        ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '考试※替考',
+                    'other' => [],
+                    'count' => 1,
+                    'location' => [5,8,13,20],
+                    'type' => 2
+                ],
+            )
+            , $res[0]
+        );
     }
 
     /**
@@ -137,16 +145,18 @@ class DictionaryTest extends TestCase
     {
         $dictionary = $this->getDictionary();
         $res = $dictionary->detect('s10赛季lol🈲赌博+++++');
-        $expected = json_encode([
-            [
-                'word' => '赌博※lol',
-                'other' => ['英雄联盟赌博相关'],
-                'count' => 1,
-                'location' => [5,9],
-                'type' => 2
-            ],
-        ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '赌博※lol',
+                    'other' => ['英雄联盟赌博相关'],
+                    'count' => 1,
+                    'location' => [5,9],
+                    'type' => 2
+                ],
+            )
+            , $res[0]
+        );
     }
 
     /**
@@ -158,23 +168,30 @@ class DictionaryTest extends TestCase
     {
         $dictionary = $this->getDictionary();
         $res = $dictionary->detect('计算机①级考试🐂替考+++++++++++++我🐂微信');
-        $expected = json_encode([
-            [
-                'word' => '考试※替考',
-                'other' => [],
-                'count' => 1,
-                'location' => [5,8],
-                'type' => 2
-            ],
-            [
-                'word' => '微信',
-                'other' => [],
-                'count' => 1,
-                'location' => [25],
-                'type' => 1
-            ],
-        ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '考试※替考',
+                    'other' => [],
+                    'count' => 1,
+                    'location' => [5,8],
+                    'type' => 2
+                ],
+            )
+            , $res[0]
+        );
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '微信',
+                    'other' => [],
+                    'count' => 1,
+                    'location' => [25],
+                    'type' => 1
+                ],
+            )
+            , $res[1]
+        );
     }
 
     /**
@@ -187,23 +204,30 @@ class DictionaryTest extends TestCase
         $dictionary = $this->getDictionary();
         $dictionary->append('威信');
         $res = $dictionary->detect('出售答案可+威信');
-        $expected = json_encode([
-            [
-                'word' => '出售答案',
-                'other' => [],
-                'count' => 1,
-                'location' => [0],
-                'type' => 1
-            ],
-            [
-                'word' => '威信',
-                'other' => [],
-                'count' => 1,
-                'location' => [6],
-                'type' => 1
-            ],
-        ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '出售答案',
+                    'other' => [],
+                    'count' => 1,
+                    'location' => [0],
+                    'type' => 1
+                ],
+            )
+            , $res[0]
+        );
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '威信',
+                    'other' => [],
+                    'count' => 1,
+                    'location' => [6],
+                    'type' => 1
+                ],
+            )
+            , $res[1]
+        );
     }
 
     /**
@@ -216,16 +240,18 @@ class DictionaryTest extends TestCase
         $dictionary = $this->getDictionary();
         $dictionary->remove('威信');
         $res = $dictionary->detect('出售答案可+威信');
-        $expected = json_encode([
-            [
-                'word' => '出售答案',
-                'other' => [],
-                'count' => 1,
-                'location' => [0],
-                'type' => 1
-            ],
-        ], JSON_UNESCAPED_UNICODE);
-        $this->assertEquals($expected, json_encode(array_values($res), JSON_UNESCAPED_UNICODE));
+        $this->assertEquals(
+            $this->createDetectResult(
+                [
+                    'word' => '出售答案',
+                    'other' => [],
+                    'count' => 1,
+                    'location' => [0],
+                    'type' => 1
+                ],
+            )
+            , $res[0]
+        );
     }
 
     private function getDictionary():Dictionary
