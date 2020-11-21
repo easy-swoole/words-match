@@ -1,19 +1,12 @@
 <?php
-/**
- * @CreateTime:   2020-03-22 15:40
- * @Author:       huizhang <2788828128@qq.com>
- * @Copyright:    copyright(2020) Easyswoole all rights reserved
- * @Description:  编码转换
- */
-namespace EasySwoole\WordsMatch\Extend;
 
-use EasySwoole\Component\Singleton;
+
+namespace EasySwoole\WordsMatch\Dictionary;
+
 
 class CodeTrans
 {
-    use Singleton;
-
-    public function judgeAsciiByteNum($ascii): int
+    public static function judgeAsciiByteNum($ascii): int
     {
         $result = 0;
         if (($ascii >> 7) === 0) {
@@ -28,14 +21,14 @@ class CodeTrans
         return $result;
     }
 
-    public function strToChars($str): array
+    public static function strToChars($str): array
     {
         $len = strlen($str);
         $chars = [];
         for ($i = 0; $i < $len; $i++) {
             $code = null;
             $asciiCode = ord($str[$i]);
-            $asciiByteNum = $this->judgeAsciiByteNum($asciiCode);
+            $asciiByteNum = self::judgeAsciiByteNum($asciiCode);
             if ($i < $len-($asciiByteNum-1)) {
                 $char = null;
                 for ($cursor=0;$cursor<$asciiByteNum; $cursor++) {
@@ -47,5 +40,4 @@ class CodeTrans
         }
         return $chars;
     }
-
 }

@@ -11,6 +11,11 @@ meta:
 
 words-match组件是基于字典树(DFA)并利用UnixSock通讯和自定义进程实现，开发本组件的目的是帮小伙伴们快速部署内容检测服务。
 
+## 单元测试
+```
+./vendor/bin/phpunit tests
+```
+
 ## 使用场景
 
 跟文字内容相关的产品都有应用场景。
@@ -63,14 +68,16 @@ class EasySwooleEvent implements Event
     {
         // TODO: Implement initialize() method.
         date_default_timezone_set('Asia/Shanghai');
-
     }
 
     public static function mainServerCreate(EventRegister $register)
     {
         // TODO: Implement mainServerCreate() method.
         $config = [
-            'wordBank' => '/Users/xxx/sites/easyswoole/WordsMatch/comment.txt', // 词库地址
+            'wordBanks' => [
+                'one' => '/Users/xxx/sites/easyswoole/WordsMatch/comment.txt',
+                'two' => '/Users/xxx/sites/easyswoole/WordsMatch/comment1.txt'
+            ], // 词库地址
             'processNum' => 3, // 进程数
             'maxMem' => 1024, // 每个进程最大占用内存(M)
             'separator' => ',', // 词和其它信息的间隔符
@@ -110,18 +117,24 @@ class Index extends Controller
 
     function append()
     {
-        WordsMatchClient::getInstance()->append('easyswoole', [3,4,5]);
+        WordsMatchClient::getInstance()
+                    ->setWordBanks(['one']) // 必须指定词库
+                    ->append('会长');
     }
 
     function detect()
     {
         $content = 'php是世界上最好的语言';
-        WordsMatchClient::getInstance()->detect($content);
+        WordsMatchClient::getInstance()
+                    ->setWordBanks(['one']) // 不指定词库则检测所有词库
+                    ->detect($content);
     }
 
     function remove()
     {
-        WordsMatchClient::getInstance()->remove('easyswoole');
+        WordsMatchClient::getInstance()
+                        ->setWordBanks(['one']) // 必须指定词库
+                        ->remove('会长');
     }
 
 }
