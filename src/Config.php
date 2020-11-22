@@ -9,7 +9,7 @@ use EasySwoole\Spl\SplBean;
 class Config extends SplBean
 {
     private $dict;
-    private $workerNum;
+    private $workerNum = 1;
     private $maxMEM = "512M";
     private $sockDIR = null;
 
