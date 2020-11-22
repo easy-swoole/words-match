@@ -12,6 +12,7 @@ class Config extends SplBean
     private $workerNum = 1;
     private $maxMEM = "512M";
     private $sockDIR = null;
+    private $timeout = 3.0;
 
     protected function initialize(): void
     {
@@ -83,4 +84,22 @@ class Config extends SplBean
     {
         $this->sockDIR = $sockDIR;
     }
+
+    /**
+     * @return float
+     */
+    public function getTimeout(): float
+    {
+        return $this->timeout;
+    }
+
+    /**
+     * @param float $timeout
+     */
+    public function setTimeout(float $timeout): void
+    {
+        $this->timeout = $timeout;
+    }
+
+
 }
