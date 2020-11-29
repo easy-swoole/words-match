@@ -6,11 +6,9 @@ namespace EasySwoole\WordsMatch\Process;
 
 class Command
 {
-    const COMMAND_LOAD = 0x1;
-    const COMMAND_remove = 0x2;
-    const COMMAND_APPEND = 0x3;
-    const COMMAND_DETECT = 0x4;
-    const COMMAND_RELOAD = 0x5;
+    
+    const COMMAND_DETECT = 0x1;
+    const COMMAND_RELOAD = 0x2;
 
     private $command;
     private $args;

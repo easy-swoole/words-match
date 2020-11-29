@@ -29,19 +29,33 @@ class DictionaryTest extends TestCase
             'word' => '包夜',
             'other' => [],
             'count' => 1,
-            'location' => [2],
+            'location' => [
+                '包夜' => [
+                    'location' => [
+                        2
+                    ],
+                    'length' => 2
+                ]
+            ],
             'type' => 1
-        ]),$res[0]);
+        ]), $res[0]);
 
         $this->assertEquals($this->createDetectResult([
             'word' => '微信',
             'other' => [],
             'count' => 1,
-            'location' => [5],
+            'location' => [
+                '微信' => [
+                    'location' => [
+                        5
+                    ],
+                    'length' => 2
+                ]
+            ],
             'type' => 1
-        ]),$res[1]);
+        ]), $res[1]);
 
-        $this->assertCount(2,$res);
+        $this->assertCount(2, $res);
     }
 
     /**
@@ -59,7 +73,14 @@ class DictionaryTest extends TestCase
                     'word' => '包夜',
                     'other' => [],
                     'count' => 2,
-                    'location' => [2, 10],
+                    'location' => [
+                        '包夜' => [
+                            'location' => [
+                               2,10
+                            ],
+                            'length' => 2
+                        ]
+                    ],
                     'type' => 1
                 ]
             )
@@ -82,7 +103,14 @@ class DictionaryTest extends TestCase
                     'word' => '6位qq',
                     'other' => ['卖qq的'],
                     'count' => 1,
-                    'location' => [2],
+                    'location' => [
+                        '6位qq' => [
+                            'location' => [
+                                2
+                            ],
+                            'length' => 4
+                        ]
+                    ],
                     'type' => 1
                 ]
             )
@@ -105,7 +133,20 @@ class DictionaryTest extends TestCase
                     'word' => '考试※替考',
                     'other' => [],
                     'count' => 1,
-                    'location' => [5,8],
+                    'location' => [
+                        '考试' => [
+                            'location' => [
+                                5
+                            ],
+                            'length' => 2
+                        ],
+                        '替考' => [
+                            'location' => [
+                                8
+                            ],
+                            'length' => 2
+                        ]
+                    ],
                     'type' => 2
                 ],
             )
@@ -128,7 +169,20 @@ class DictionaryTest extends TestCase
                     'word' => '考试※替考',
                     'other' => [],
                     'count' => 1,
-                    'location' => [5,8,13,20],
+                    'location' => [
+                        '考试' => [
+                            'location' => [
+                                5
+                            ],
+                            'length' => 2
+                        ],
+                        '替考' => [
+                            'location' => [
+                                8, 13, 20
+                            ],
+                            'length' => 2
+                        ]
+                    ],
                     'type' => 2
                 ],
             )
@@ -151,7 +205,20 @@ class DictionaryTest extends TestCase
                     'word' => '赌博※lol',
                     'other' => ['英雄联盟赌博相关'],
                     'count' => 1,
-                    'location' => [5,9],
+                    'location' => [
+                        'lol' => [
+                            'location' => [
+                                5
+                            ],
+                            'length' => 3
+                        ],
+                        '赌博' => [
+                            'location' => [
+                               9
+                            ],
+                            'length' => 2
+                        ]
+                    ],
                     'type' => 2
                 ],
             )
@@ -171,46 +238,17 @@ class DictionaryTest extends TestCase
         $this->assertEquals(
             $this->createDetectResult(
                 [
-                    'word' => '考试※替考',
-                    'other' => [],
-                    'count' => 1,
-                    'location' => [5,8],
-                    'type' => 2
-                ],
-            )
-            , $res[0]
-        );
-        $this->assertEquals(
-            $this->createDetectResult(
-                [
                     'word' => '微信',
                     'other' => [],
                     'count' => 1,
-                    'location' => [25],
-                    'type' => 1
-                ],
-            )
-            , $res[1]
-        );
-    }
-
-    /**
-     * 添加词
-     *
-     * CreateTime: 2020/11/6 12:52 上午
-     */
-    public function testAppend()
-    {
-        $dictionary = $this->getDictionary();
-        $dictionary->append('威信');
-        $res = $dictionary->detect('出售答案可+威信');
-        $this->assertEquals(
-            $this->createDetectResult(
-                [
-                    'word' => '出售答案',
-                    'other' => [],
-                    'count' => 1,
-                    'location' => [0],
+                    'location' => [
+                        '微信' => [
+                            'location' => [
+                                25
+                            ],
+                            'length' => 2
+                        ],
+                    ],
                     'type' => 1
                 ],
             )
@@ -219,38 +257,27 @@ class DictionaryTest extends TestCase
         $this->assertEquals(
             $this->createDetectResult(
                 [
-                    'word' => '威信',
+                    'word' => '考试※替考',
                     'other' => [],
                     'count' => 1,
-                    'location' => [6],
-                    'type' => 1
+                    'location' => [
+                        '考试' => [
+                            'location' => [
+                                5
+                            ],
+                            'length' => 2
+                        ],
+                        '替考' => [
+                            'location' => [
+                                8
+                            ],
+                            'length' => 2
+                        ]
+                    ],
+                    'type' => 2
                 ],
             )
             , $res[1]
-        );
-    }
-
-    /**
-     * 移除词
-     *
-     * CreateTime: 2020/11/6 12:55 上午
-     */
-    public function testRemove()
-    {
-        $dictionary = $this->getDictionary();
-        $dictionary->remove('威信');
-        $res = $dictionary->detect('出售答案可+威信');
-        $this->assertEquals(
-            $this->createDetectResult(
-                [
-                    'word' => '出售答案',
-                    'other' => [],
-                    'count' => 1,
-                    'location' => [0],
-                    'type' => 1
-                ],
-            )
-            , $res[0]
         );
     }
 

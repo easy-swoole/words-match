@@ -2,10 +2,13 @@
 
 namespace EasySwoole\WordsMatch\Dictionary;
 
+use EasySwoole\Component\Singleton;
 use EasySwoole\Spl\SplFileStream;
 
 class Dictionary
 {
+
+    use Singleton;
 
     /** @var $tree DFA */
     private $tree;
@@ -67,43 +70,6 @@ class Dictionary
         $this->group = $group;
     }
 
-    public function remove(string $word)
-    {
-        $splFileStream = new SplFileStream($this->file, 'r');
-        $content = '';
-        while (!$splFileStream->eof()) {
-            $line = trim(fgets($splFileStream->getStreamResource()));
-            if (empty($line)) {
-                continue;
-            }
-            $items = explode(self::SEPARATOR, $line);
-            if (array_shift($items) === $word) {
-                continue;
-            }
-            $content .= $line . PHP_EOL;
-        }
-        $splFileStream->close();
-        $splFileStream = new SplFileStream($this->file, 'w');
-        $splFileStream->write($content);
-        $splFileStream->close();
-
-        $this->load($this->file);
-    }
-
-    public function append(string $word, array $other = [])
-    {
-        $splFileStream = new SplFileStream($this->file, 'a+');
-        $item = $word;
-        if (!empty($other)) {
-            $item .= self::SEPARATOR . implode(self::SEPARATOR, $other);
-        }
-        $item .= PHP_EOL;
-        $splFileStream->write($item);
-        $splFileStream->close();
-
-        $this->load($this->file);
-    }
-
     public function detect(string $content)
     {
         $detectResult = $this->tree->search($content);
@@ -140,37 +106,48 @@ class Dictionary
             $word = $item['word'];
             $type = $item['other']['type'];
             unset($item['other']['type']);
+            $other = $item['other'];
+            $count = $item['count'];
+            $location = $item['location'];
 
-            // 命中的词的类型为普通词则直接命中
-            if ($type === self::WORD_TYPE_NORMAL) {
-                $item['type'] = self::WORD_TYPE_NORMAL;
-                $result[] = $item;
-                continue;
+            // 命中的词的类型为普通词则直接命中, 命中的词的类型为普通词and复合词，则普通词先直接命中
+            if (in_array($type, [self::WORD_TYPE_NORMAL, self::WORD_TYPE_NORMAL_AND_COMPOUND], false)) {
+                $result[$word] = [
+                    'type' => self::WORD_TYPE_NORMAL,
+                    'word' => $word,
+                    'other' => $other,
+                    'count' => $count,
+                    'location' => [
+                        $word => [
+                            'location' => $location,
+                            'length' => mb_strlen($word)
+                        ]
+                    ]
+                ];
             }
 
-            // 命中的词的类型为普通词and复合词，则普通词先直接命中
-            if ($type === self::WORD_TYPE_NORMAL_AND_COMPOUND) {
-                $item['type'] = self::WORD_TYPE_NORMAL;
-                $result[] = $item;
-            }
-
-            // 命中的词为复合词 or (普通词 and 复合词), 进行判定复合词中的普通词是否已经全部命中
             if (in_array($type, [self::WORD_TYPE_COMPOUND, self::WORD_TYPE_NORMAL_AND_COMPOUND])) {
-                foreach ($compoundWordsInfo as &$compound) {
+                foreach ($compoundWordsInfo as $compoundKey => $compound) {
                     if (in_array($word, $compound['compound_word_arr'], false)) {
-                        $compound['current'] += 1;
-                        $compound['location'][] = $item['location'];
-                        if ($compound['total'] === $compound['current']) {
-                            $result[] = [
-                                'word' => $compound['compound_word'],
-                                'other' => $compound['other'],
-                                'count' => 1,
-                                'location' => array_merge(...$compound['location']),
-                                'type' => self::WORD_TYPE_COMPOUND
-                            ];
-                        }
+                        $compoundWordsInfo[$compoundKey]['current'] += 1;
+                        $compoundWordsInfo[$compoundKey]['location'][$word] = [
+                            'location' => $location,
+                            'length' => mb_strlen($word)
+                        ];
                     }
                 }
+            }
+        }
+
+        foreach ($compoundWordsInfo as $compound) {
+            if ($compound['total'] <= $compound['current']) {
+                $result[$compound['compound_word']] = [
+                    'word' => $compound['compound_word'],
+                    'other' => $compound['other'],
+                    'count' => 1,
+                    'location' => $compound['location'],
+                    'type' => self::WORD_TYPE_COMPOUND
+                ];
             }
         }
         return $result;

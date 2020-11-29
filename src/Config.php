@@ -4,15 +4,18 @@
 namespace EasySwoole\WordsMatch;
 
 
+use EasySwoole\Component\Singleton;
 use EasySwoole\Spl\SplBean;
 
 class Config extends SplBean
 {
+    use Singleton;
+
     private $dict;
     private $workerNum = 1;
-    private $maxMEM = "512M";
-    private $sockDIR = null;
+    private $maxMEM = '512M';
     private $timeout = 3.0;
+    private $sockDIR;
 
     protected function initialize(): void
     {
@@ -21,85 +24,59 @@ class Config extends SplBean
         }
     }
 
-    /**
-     * @return mixed
-     */
+    public function setDict(string $dict)
+    {
+        $this->dict = $dict;
+        return $this;
+    }
+
     public function getDict()
     {
         return $this->dict;
     }
 
-    /**
-     * @param mixed $dict
-     */
-    public function setDict($dict): void
-    {
-        $this->dict = $dict;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getWorkerNum()
     {
         return $this->workerNum;
     }
 
-    /**
-     * @param mixed $workerNum
-     */
-    public function setWorkerNum($workerNum): void
+    public function setWorkerNum($workerNum)
     {
         $this->workerNum = $workerNum;
+        return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getMaxMEM(): string
     {
         return $this->maxMEM;
     }
 
-    /**
-     * @param string $maxMEM
-     */
-    public function setMaxMEM(string $maxMEM): void
+    public function setMaxMEM(string $maxMEM)
     {
         $this->maxMEM = $maxMEM;
+        return $this;
     }
 
-    /**
-     * @return null
-     */
     public function getSockDIR()
     {
         return $this->sockDIR;
     }
 
-    /**
-     * @param null $sockDIR
-     */
-    public function setSockDIR($sockDIR): void
+    public function setSockDIR($sockDIR)
     {
         $this->sockDIR = $sockDIR;
+        return $this;
     }
 
-    /**
-     * @return float
-     */
     public function getTimeout(): float
     {
         return $this->timeout;
     }
 
-    /**
-     * @param float $timeout
-     */
-    public function setTimeout(float $timeout): void
+    public function setTimeout(float $timeout)
     {
         $this->timeout = $timeout;
+        return $this;
     }
-
 
 }
