@@ -4,6 +4,7 @@ namespace EasySwoole\WordsMatch;
 use EasySwoole\Component\Csp;
 use EasySwoole\Component\Process\Socket\UnixProcessConfig;
 use EasySwoole\Component\Singleton;
+use EasySwoole\WordsMatch\Dictionary\DetectResult;
 use EasySwoole\WordsMatch\Process\Command;
 use EasySwoole\WordsMatch\Process\DFAProcess;
 use EasySwoole\WordsMatch\Process\Protocol;
@@ -39,6 +40,15 @@ class WMServer
         return $this->hasAttach;
     }
 
+    /**
+     * 内容检测
+     *
+     * @param string $content
+     * @param float|null $timeout
+     * @return DetectResult[]
+     * @throws \Exception
+     * CreateTime: 2020/11/30 12:17 上午
+     */
     public function detect(string $content, float $timeout = null)
     {
         $command = new Command();
@@ -51,6 +61,13 @@ class WMServer
         );
     }
 
+    /**
+     * 重新加载词库
+     *
+     * @param float|null $timeout
+     * @return array
+     * CreateTime: 2020/11/30 12:18 上午
+     */
     public function reload(float $timeout = null)
     {
         $command = new Command();

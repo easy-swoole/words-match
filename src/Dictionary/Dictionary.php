@@ -13,7 +13,6 @@ class Dictionary
     /** @var $tree DFA */
     private $tree;
     private $group;
-    private $file;
 
     private const WORD_TYPE_NORMAL = 1; // 普通词
     private const WORD_TYPE_COMPOUND = 2; // 复合词
@@ -25,7 +24,6 @@ class Dictionary
     public function load(string $file)
     {
         $tree = new DFA();
-        $this->file = $file;
         $splFileStream = new SplFileStream($file, 'r');
         $normalWords = [];
         $compoundWords = [];
