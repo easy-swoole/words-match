@@ -44,188 +44,32 @@ php※程序员
 ```
 
 ## 代码示例
-
-#### 服务注册
 ```php
-<?php
-namespace EasySwoole\EasySwoole;
-
-use EasySwoole\EasySwoole\AbstractInterface\Event;
-use EasySwoole\EasySwoole\Swoole\EventRegister;
-use EasySwoole\WordsMatch\WMServer;
 use EasySwoole\WordsMatch\Config;
+use EasySwoole\WordsMatch\WMServer;
 
-class EasySwooleEvent implements Event
-{
-    public static function initialize()
-    {
-        date_default_timezone_set('Asia/Shanghai');
-    }
+require 'vendor/autoload.php';
 
-    public static function mainServerCreate(EventRegister $register)
-    {
-        $config = Config::getInstance()
-            ->setWorkerNum(3)
-            ->setMaxMEM('1M')
-            ->setSockDIR(EASYSWOOLE_ROOT . '/Temp/')
-            ->setDict('/Users/guoyuzhao/sites/wm-2.0/test.txt');
-        WMServer::getInstance($config)->attachServer(ServerManager::getInstance()->getSwooleServer());
+
+$http = new Swoole\Http\Server("127.0.0.1", 9501);
+
+$config = new Config();
+
+$config->setDict(__DIR__.'/tests/dictionary.txt');
+
+WMServer::getInstance($config)->attachServer($http);
+
+$http->on("request", function ($request, $response) {
+    if(isset($request->get['world'])){
+        $world = $request->get['world'];
+    }else{
+        $world = "计算机①级考试🐂替考+++++++++++++我";
     }
-}
+    $ret = WMServer::getInstance()->detect($world);
+    $response->header("Content-Type", "application/json;charset=utf-8");
+    $response->write(json_encode($ret,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+});
+
+$http->start();
 
 ```
-
-#### 客户端使用
-
-````php
-<?php
-namespace App\HttpController;
-use EasySwoole\Http\AbstractInterface\Controller;
-use EasySwoole\WordsMatch\WMServer;
-
-class Index extends Controller
-{
-
-    public function index()
-    {
-        // 内容检测
-        WMServer::getInstance()->detect('待检测内容');
-    }
-
-    public function reload()
-    {
-        // 此方法为异步实现，执行此方法后会重新reload词库，词库生效时间根据词库的大小决定
-        WMServer::getInstance()->reload();
-    }
-
-}
-````
-
-#### 检测内容
-
-> php，，，，程序员。。。java， 程序员
-
-#### 检测结果
-
-````text
-array(4) {
-  [0]=> // 命中的每个词的信息
-  object(EasySwoole\WordsMatch\Dictionary\DetectResult)#96 (5) {
-    ["word"]=>
-    string(3) "php" // 命中的词
-    ["other"]=> // 词的其它信息
-    array(2) {
-      [0]=>
-      string(12) "是世界上"
-      [1]=>
-      string(15) "最好的语言"
-    }
-    ["count"]=> // 命中的次数
-    int(1)
-    ["location"]=> // 命中的位置信息
-    array(1) {
-      ["php"]=>
-      array(2) {
-        ["location"]=> // 位置
-        array(1) {
-          [0]=>
-          int(0)
-        }
-        ["length"]=> // 词的长度
-        int(3)
-      }
-    }
-    ["type"]=> // 词的类型，1: 普通词 2: 复合词
-    int(1)
-  }
-  [1]=>
-  object(EasySwoole\WordsMatch\Dictionary\DetectResult)#102 (5) {
-    ["word"]=>
-    string(9) "程序员"
-    ["other"]=>
-    array(0) {
-    }
-    ["count"]=>
-    int(2)
-    ["location"]=>
-    array(1) {
-      ["程序员"]=>
-      array(2) {
-        ["location"]=>
-        array(2) {
-          [0]=>
-          int(7)
-          [1]=>
-          int(19)
-        }
-        ["length"]=>
-        int(3)
-      }
-    }
-    ["type"]=>
-    int(1)
-  }
-  [2]=>
-  object(EasySwoole\WordsMatch\Dictionary\DetectResult)#103 (5) {
-    ["word"]=>
-    string(4) "java"
-    ["other"]=>
-    array(0) {
-    }
-    ["count"]=>
-    int(1)
-    ["location"]=>
-    array(1) {
-      ["java"]=>
-      array(2) {
-        ["location"]=>
-        array(1) {
-          [0]=>
-          int(13)
-        }
-        ["length"]=>
-        int(4)
-      }
-    }
-    ["type"]=>
-    int(1)
-  }
-  [3]=>
-  object(EasySwoole\WordsMatch\Dictionary\DetectResult)#104 (5) {
-    ["word"]=>
-    string(15) "php※程序员"
-    ["other"]=>
-    array(0) {
-    }
-    ["count"]=>
-    int(1)
-    ["location"]=>
-    array(2) {
-      ["php"]=>
-      array(2) {
-        ["location"]=>
-        array(1) {
-          [0]=>
-          int(0)
-        }
-        ["length"]=>
-        int(3)
-      }
-      ["程序员"]=>
-      array(2) {
-        ["location"]=>
-        array(2) {
-          [0]=>
-          int(7)
-          [1]=>
-          int(19)
-        }
-        ["length"]=>
-        int(3)
-      }
-    }
-    ["type"]=>
-    int(2)
-  }
-}
-````

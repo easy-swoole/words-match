@@ -20,6 +20,9 @@ class WMServer
 
     public function __construct(Config $config)
     {
+        if(!file_exists($config->getDict())){
+            throw new Exception("dictionary path:{$config->getDict()} is not exist");
+        }
         $this->config = $config;
     }
 
