@@ -9,9 +9,9 @@ use EasySwoole\Spl\SplBean;
 class DetectResult extends SplBean
 {
     public $word;
-    public $other;
-    public $count = 0;
     public $location = [];
+    public $count = 0;
+    public $remark;
     public $type;
 
     public function getWord(): string
@@ -24,14 +24,14 @@ class DetectResult extends SplBean
         $this->word = $word;
     }
 
-    public function getOther(): array
+    public function getRemark(): array
     {
-        return $this->other;
+        return $this->remark;
     }
 
-    public function setOther(array $other): void
+    public function setRemark(array $remark): void
     {
-        $this->other = $other;
+        $this->remark = $remark;
     }
 
     public function getCount(): int

@@ -13,17 +13,19 @@ class Dictionary
     /** @var $tree DFA */
     private $tree;
     private $group;
+    private $file;
 
     private const WORD_TYPE_NORMAL = 1; // 普通词
     private const WORD_TYPE_COMPOUND = 2; // 复合词
     private const WORD_TYPE_NORMAL_AND_COMPOUND = 3; // 既是普通词又在复合词中
 
-    private const SEPARATOR = ','; // 每行词信息分隔符
-    private const COMPOUND_SEPARATOR = '※'; // 复合词分隔符
+    private const SEPARATOR = '※'; // 每行词信息分隔符
+    private const COMPOUND_SEPARATOR = '∮'; // 复合词分隔符
 
     public function load(string $file)
     {
         $tree = new DFA();
+        $this->file = $file;
         $splFileStream = new SplFileStream($file, 'r');
         $normalWords = [];
         $compoundWords = [];
@@ -35,25 +37,24 @@ class Dictionary
             }
             $items = explode(self::SEPARATOR, $line);
             $first = array_shift($items);
+            $remark = implode(self::SEPARATOR, $items);
             $words = explode(self::COMPOUND_SEPARATOR, $first);
             $isCompoundWord = count($words) > 1;
             foreach ($words as $word) {
                 $other = [];
                 if ($isCompoundWord) {
-                    $group[$word][] = [
-                        $first,
-                        implode(self::SEPARATOR, $items)
-                    ];
+                    $group[$word][] = [$first, $remark];
                     $compoundWords[] = $word;
                     if (array_key_exists($word, $normalWords)) {
-                        $other = $normalWords[$word];
+                        $other['remark'] = $normalWords[$word];
                         $other['type'] = self::WORD_TYPE_NORMAL_AND_COMPOUND;
                     } else {
+                        $other['remark'] = '';
                         $other['type'] = self::WORD_TYPE_COMPOUND;
                     }
                 } else {
-                    $normalWords[$word] = $items;
-                    $other = $items;
+                    $normalWords[$word] = $remark;
+                    $other['remark'] = $remark;
                     if (in_array($word, $compoundWords, false)) {
                         $other['type'] = self::WORD_TYPE_NORMAL_AND_COMPOUND;
                     } else {
@@ -111,16 +112,17 @@ class Dictionary
             // 命中的词的类型为普通词则直接命中, 命中的词的类型为普通词and复合词，则普通词先直接命中
             if (in_array($type, [self::WORD_TYPE_NORMAL, self::WORD_TYPE_NORMAL_AND_COMPOUND], false)) {
                 $result[$word] = [
-                    'type' => self::WORD_TYPE_NORMAL,
                     'word' => $word,
-                    'other' => $other,
-                    'count' => $count,
                     'location' => [
-                        $word => [
-                            'location' => $location,
-                            'length' => mb_strlen($word)
+                        [
+                            'word' => $word,
+                            'length' => mb_strlen($word),
+                            'location' => $location
                         ]
-                    ]
+                    ],
+                    'count' => $count,
+                    'remark' => $other['remark'],
+                    'type' => self::WORD_TYPE_NORMAL,
                 ];
             }
 
@@ -129,8 +131,9 @@ class Dictionary
                     if (in_array($word, $compound['compound_word_arr'], false)) {
                         $compoundWordsInfo[$compoundKey]['current'] += 1;
                         $compoundWordsInfo[$compoundKey]['location'][$word] = [
+                            'word' => $word,
+                            'length' => mb_strlen($word),
                             'location' => $location,
-                            'length' => mb_strlen($word)
                         ];
                     }
                 }
@@ -141,9 +144,9 @@ class Dictionary
             if ($compound['total'] <= $compound['current']) {
                 $result[$compound['compound_word']] = [
                     'word' => $compound['compound_word'],
-                    'other' => $compound['other'],
+                    'location' => array_values($compound['location']),
                     'count' => 1,
-                    'location' => $compound['location'],
+                    'remark' => $compound['remark'],
                     'type' => self::WORD_TYPE_COMPOUND
                 ];
             }
@@ -170,16 +173,11 @@ class Dictionary
                 {
                     $compoundWordArr = explode(self::COMPOUND_SEPARATOR, $compoundWord[0]);
 
-                    $other = explode(self::SEPARATOR, $compoundWord[1]);
-                    if ($compoundWord[1] === '')
-                    {
-                        $other = [];
-                    }
                     sort($compoundWordArr, SORT_STRING);
                     $result[md5(implode('', $compoundWordArr))] = [
                         'compound_word' => $compoundWord[0], // 组合词: es※easyswoole
                         'compound_word_arr' => $compoundWordArr, // 组合词数组: [es,easyswoole]
-                        'other' => $other, // 组合词其它信息
+                        'remark' => $compoundWord[1], // 组合词其它信息
                         'total' => count($compoundWordArr), // 组合词大小
                         'current' => 0, // 符合复合词中的普通词的个数，current === total,说明命中了复合词
                         'location' => [] // 复合词中的普通词在内容中的位置
