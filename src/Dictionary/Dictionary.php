@@ -2,14 +2,10 @@
 
 namespace EasySwoole\WordsMatch\Dictionary;
 
-use EasySwoole\Component\Singleton;
 use EasySwoole\Spl\SplFileStream;
 
 class Dictionary
 {
-
-    use Singleton;
-
     /** @var $tree DFA */
     private $tree;
     private $group;

@@ -9,6 +9,10 @@ class Command
     
     const COMMAND_DETECT = 0x1;
     const COMMAND_RELOAD = 0x2;
+    const ERROR_TIMEOUT = -1;
+    const ERROR_DICTIONARY_NOT_READY = -2;
+    const ERROR_PACKAGE_ERROR = -3;
+    const ERROR_WORKER_ERROR = -4;
 
     private $command;
     private $args;
