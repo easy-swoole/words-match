@@ -108,7 +108,7 @@ class WMServer
         if(is_string($data)){
             return unserialize(Protocol::unpack($data));
         }else{
-            return null;
+            return Command::ERROR_TIMEOUT;
         }
     }
 }
