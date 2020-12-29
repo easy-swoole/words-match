@@ -57,9 +57,10 @@ class WMServer
         $command = new Command();
         $command->setCommand(Command::COMMAND_DETECT);
         $command->setArgs($content);
+        mt_srand();
         return $this->send2worker(
             $command
-            , random_int(0, $this->config->getWorkerNum()-1)
+            , mt_rand(0, $this->config->getWorkerNum()-1)
             , $timeout
         );
     }
