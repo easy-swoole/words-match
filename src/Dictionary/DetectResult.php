@@ -24,12 +24,12 @@ class DetectResult extends SplBean
         $this->word = $word;
     }
 
-    public function getRemark(): array
+    public function getRemark(): string
     {
         return $this->remark;
     }
 
-    public function setRemark(array $remark): void
+    public function setRemark(string $remark): void
     {
         $this->remark = $remark;
     }
