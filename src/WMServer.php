@@ -3,7 +3,6 @@ namespace EasySwoole\WordsMatch;
 
 use EasySwoole\Component\Csp;
 use EasySwoole\Component\Process\Socket\UnixProcessConfig;
-use EasySwoole\Component\Singleton;
 use EasySwoole\WordsMatch\Dictionary\DetectResult;
 use EasySwoole\WordsMatch\Process\Command;
 use EasySwoole\WordsMatch\Process\DFAProcess;
@@ -13,7 +12,6 @@ use Swoole\Server;
 
 class WMServer
 {
-    use Singleton;
 
     private $config;
     private $hasAttach = false;

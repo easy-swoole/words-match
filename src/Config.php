@@ -9,8 +9,6 @@ use EasySwoole\Spl\SplBean;
 
 class Config extends SplBean
 {
-    use Singleton;
-
     private $dict;
     private $workerNum = 1;
     private $maxMEM = '512M';
