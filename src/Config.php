@@ -15,6 +15,8 @@ class Config extends SplBean
     private $timeout = 3.0;
     private $sockDIR;
 
+    private $serverName = "EasySwoole";
+
     protected function initialize(): void
     {
         if(empty($this->sockDIR)){
@@ -77,4 +79,19 @@ class Config extends SplBean
         return $this;
     }
 
+    /**
+     * @return string
+     */
+    public function getServerName(): string
+    {
+        return $this->serverName;
+    }
+
+    /**
+     * @param string $serverName
+     */
+    public function setServerName(string $serverName): void
+    {
+        $this->serverName = $serverName;
+    }
 }

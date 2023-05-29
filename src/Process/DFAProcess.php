@@ -5,6 +5,7 @@ namespace EasySwoole\WordsMatch\Process;
 use EasySwoole\Component\Process\Socket\AbstractUnixProcess;
 use EasySwoole\WordsMatch\Config;
 use EasySwoole\WordsMatch\Dictionary\Dictionary;
+use Swoole\Coroutine;
 use Swoole\Coroutine\Socket;
 
 class DFAProcess extends AbstractUnixProcess
@@ -13,6 +14,8 @@ class DFAProcess extends AbstractUnixProcess
     private $reload = false;
     private $dfa = null;
 
+    private $hash = null;
+
     public function run($args)
     {
         /** @var $config Config*/
@@ -20,9 +23,14 @@ class DFAProcess extends AbstractUnixProcess
         ini_set('memory_limit', $config->getMaxMEM());
         $this->dfa = new Dictionary();
         $this->dfa->load($config->getDict());
-        $this->addTick(1000, function () use($config) {
-            if ($this->reload)
-            {
+        $this->hash = md5_file($config->getDict());
+        $this->addTick(10000, function () use($config) {
+            if($this->hash !==  md5_file($config->getDict())){
+                if($this->reload){
+                    return;
+                }
+                $this->reload = true;
+                $this->hash = md5_file($config->getDict());
                 $temp = new Dictionary();
                 $temp->load($config->getDict());
                 unset($this->dfa);
@@ -63,6 +71,10 @@ class DFAProcess extends AbstractUnixProcess
                             break;
                         case Command::COMMAND_RELOAD:
                             $this->reload = true;
+                            Coroutine::create(function (){
+                               Coroutine::sleep(0.01);
+                               exit();
+                            });
                             $replyPackage = true;
                             break;
                     }
